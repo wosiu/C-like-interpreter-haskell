@@ -108,7 +108,6 @@ SlabelTwo.   Labeled_stm ::= "case" Constant_expression ":" Stm ;
 SlabelThree. Labeled_stm ::= "default" ":" Stm;
 
 Scomp.   Compound_stm ::= "{" [Compund_stm_content] "}" ;
--- Scomp.   Compound_stm ::= "{" [External_declaration] "}" ;
 
 ScompContentEmpty.	Compund_stm_content ::= ;
 ScompContentStm.	Compund_stm_content ::= Stm;

@@ -129,7 +129,6 @@ SiterOne.   Iter_stm ::= "while" "(" Exp ")" Stm;
 SiterThree. Iter_stm ::= "for" "(" Expression_stm Expression_stm ")" Stm ;
 SiterFour.  Iter_stm ::= "for" "(" Expression_stm Expression_stm Exp ")" Stm;
 
-SjumpOne.   Jump_stm ::= "goto" Ident ";" ;
 SjumpTwo.   Jump_stm ::= "continue" ";" ;
 SjumpThree. Jump_stm ::= "break" ";" ;
 SjumpFive.  Jump_stm ::= "return" Exp ";" ;

@@ -107,10 +107,16 @@ JumpS.    Stm ::= Jump_stm ;
 SlabelTwo.   Labeled_stm ::= "case" Constant_expression ":" Stm ;
 SlabelThree. Labeled_stm ::= "default" ":" Stm;
 
-ScompOne.   Compound_stm ::= "{" "}" ;
-ScompTwo.   Compound_stm ::= "{" [Stm] "}" ;
-ScompThree. Compound_stm ::= "{" [Dec] "}" ;
-ScompFour.  Compound_stm ::= "{" [Dec] [Stm] "}" ;
+Scomp.   Compound_stm ::= "{" [Compund_stm_content] "}" ;
+-- Scomp.   Compound_stm ::= "{" [External_declaration] "}" ;
+
+ScompContentEmpty.	Compund_stm_content ::= ;
+ScompContentStm.	Compund_stm_content ::= Stm;
+ScompContentDec.	Compund_stm_content ::= External_declaration;
+
+(:[]).   [Compund_stm_content] ::= Compund_stm_content ;
+(:).     [Compund_stm_content] ::= Compund_stm_content [Compund_stm_content];
+
 
 SexprOne.   Expression_stm ::= ";" ;
 SexprTwo.   Expression_stm ::= Exp ";" ;
@@ -166,7 +172,7 @@ Ebool.         Constant ::= CBool;
 Eint.          Constant ::= Integer;  
 
 BTrue.	CBool ::= "true";
-BTrue.	CBool ::= "false";
+BFalse.	CBool ::= "false";
 
 
 Especial. Constant_expression ::= Exp3;

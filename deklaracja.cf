@@ -14,42 +14,23 @@ Progr.  Program ::= [External_declaration] ;
 Afunc.  External_declaration ::= Function_def ;
 Global. External_declaration ::= Dec ;
 
---OldFunc.     Function_def ::= Type_specifier Declarator [Dec] Compound_stm ;
-NewFunc.     Function_def ::= Type_specifier Declarator Compound_stm ;
---OldFuncInt.  Function_def ::= Declarator [Dec] Compound_stm ;
---NewFuncInt.  Function_def ::= Declarator Compound_stm ;
+NewFunc.     Function_def ::= Type_specifier Direct_declarator Compound_stm ;
 
---NoDeclarator.  Dec ::= Type_specifier ";";
---Declarators.   Dec ::= Type_specifier [Init_declarator] ";" ;
 Declarators.   Dec ::= Type_specifier Init_declarator ";" ;
 
---(:[]).    [Dec] ::= Dec;
---(:).      [Dec] ::= Dec [Dec];  
-
---(:[]).   [Init_declarator] ::= Init_declarator ;
---(:).     [Init_declarator] ::= Init_declarator "," [Init_declarator] ;
-
-OnlyDecl.  Init_declarator ::= Declarator ;
-InitDecl.  Init_declarator ::= Declarator "=" Initializer;
+OnlyDecl.  Init_declarator ::= Direct_declarator ;
+InitDecl.  Init_declarator ::= Direct_declarator "=" Initializer;
 
 Tbool.        Type_specifier ::= "bool";
 Tint.         Type_specifier ::= "int";
 
---(:[]).  [Spec_qual] ::= Spec_qual ;
---(:).    [Spec_qual] ::= Spec_qual [Spec_qual];
-
---TypeSpec.  Spec_qual ::= Type_specifier ;
-
-NoPointer.      Declarator ::= Direct_declarator ;
-
 Name.        Direct_declarator ::= Ident ;
-ParenDecl.   Direct_declarator ::= "(" Declarator ")" ;
+ParenDecl.   Direct_declarator ::= "(" Direct_declarator ")" ;
 InnitArray.  Direct_declarator ::= Direct_declarator "[" Constant_expression "]" ;
 Incomplete.  Direct_declarator ::= Direct_declarator "[" "]" ;
 NewFuncDec.  Direct_declarator ::= Direct_declarator "(" Parameter_type ")" ;
 OldFuncDef.  Direct_declarator ::= Direct_declarator "(" [Ident] ")" ;
 OldFuncDec.  Direct_declarator ::= Direct_declarator "(" ")" ;
-
 
 AllSpec.  Parameter_type ::= Parameter_declarations ;
 
@@ -57,7 +38,7 @@ ParamDec.     Parameter_declarations ::= Parameter_declaration ;
 MoreParamDec. Parameter_declarations ::= Parameter_declarations "," Parameter_declaration ;
 
 OnlyType.      Parameter_declaration ::= Type_specifier ;
-TypeAndParam.  Parameter_declaration ::= Type_specifier Declarator ;
+TypeAndParam.  Parameter_declaration ::= Type_specifier Direct_declarator ;
 Abstract.      Parameter_declaration ::= Type_specifier Abstract_declarator ;
 
 
@@ -73,20 +54,15 @@ AnInit.   Initializers ::= Initializer ;
 MoreInit. Initializers ::= Initializers "," Initializer ;
 
 
---PlainType.    Type_name ::= [Spec_qual] ;
---ExtendedType. Type_name ::= [Spec_qual] Abstract_declarator ;
-
-Advanced.        Abstract_declarator ::= Dir_abs_dec ;
-
-WithinParentes.  Dir_abs_dec ::= "(" Abstract_declarator ")" ;
-Array.           Dir_abs_dec ::= "[" "]" ;
-InitiatedArray.  Dir_abs_dec ::= "[" Constant_expression "]" ;
-UnInitiated.     Dir_abs_dec ::= Dir_abs_dec "[" "]" ;
-Initiated.       Dir_abs_dec ::= Dir_abs_dec "[" Constant_expression "]" ;
-OldFunction.     Dir_abs_dec ::= "(" ")" ;
-NewFunction.     Dir_abs_dec ::= "(" Parameter_type ")" ;
-OldFuncExpr.     Dir_abs_dec ::= Dir_abs_dec "(" ")" ;
-NewFuncExpr.     Dir_abs_dec ::= Dir_abs_dec "(" Parameter_type ")" ;
+WithinParentes.  Abstract_declarator ::= "(" Abstract_declarator ")" ;
+Array.           Abstract_declarator ::= "[" "]" ;
+InitiatedArray.  Abstract_declarator ::= "[" Constant_expression "]" ;
+UnInitiated.     Abstract_declarator ::= Abstract_declarator "[" "]" ;
+Initiated.       Abstract_declarator ::= Abstract_declarator "[" Constant_expression "]" ;
+OldFunction.     Abstract_declarator ::= "(" ")" ;
+NewFunction.     Abstract_declarator ::= "(" Parameter_type ")" ;
+OldFuncExpr.     Abstract_declarator ::= Abstract_declarator "(" ")" ;
+NewFuncExpr.     Abstract_declarator ::= Abstract_declarator "(" Parameter_type ")" ;
 
 
 -- STATEMANTS
@@ -149,7 +125,6 @@ Eplus.       Exp12 ::= Exp12 "+" Exp13;
 Eminus.      Exp12 ::= Exp12 "-" Exp13;
 Etimes.      Exp13 ::= Exp13 "*" Exp14;
 Ediv.        Exp13 ::= Exp13 "/" Exp14;
---Etypeconv.   Exp14 ::= "(" Type_name ")" Exp14;
 Epreinc.     Exp15 ::= "++" Exp15;
 Epredec.     Exp15 ::= "--" Exp15;
 Epreop.      Exp15 ::= Unary_operator Exp14;

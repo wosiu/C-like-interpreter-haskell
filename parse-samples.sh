@@ -1,11 +1,11 @@
-echo "SUCCESS EXPECTED:\n"
-for i in `seq 1 13`
+echo "SUCCESS EXPECTED:"
+for file in sample-correct/sample*.c
 do
-	echo $i ":" `./parser/Testdeklaracja ./sample-correct/sample$i.c | grep -e "Parse Successful!" -e "Failed..."`
+	echo $file ":" `./parser/Testdeklaracja $file | grep -e "Parse Successful!" -e "Failed..."`
 done
 
-echo "FAIL EXPECTED:\n"
-for i in `seq 1 10`
+echo "FAIL EXPECTED:"
+for file in sample-incorrect/sample*.c
 do
-	echo $i ":" `./parser/Testdeklaracja ./sample-incorrect/sample$i.c | grep -e "Parse Successful!" -e "Failed..."`
+	echo $file ":" `./parser/Testdeklaracja $file | grep -e "Parse Successful!" -e "Failed..."`
 done

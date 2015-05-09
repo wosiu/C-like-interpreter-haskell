@@ -4,9 +4,19 @@
 entrypoints Program, Stm, Exp ;
 
 
+Progr.  Program ::= [Compund_content] ;
+
+ScompContentEmpty.	Compund_content ::= ;
+ScompContentStm.	Compund_content ::= Stm;
+ScompContentDec.	Compund_content ::= External_declaration;
+
+(:[]).   [Compund_content] ::= Compund_content ;
+(:).     [Compund_content] ::= Compund_content [Compund_content];
+
+
+
 -- DECLARATIONS
 
-Progr.  Program ::= [External_declaration] ;
 
 (:[]).    [External_declaration] ::= External_declaration;
 (:).      [External_declaration] ::= External_declaration [External_declaration];
@@ -27,7 +37,7 @@ Tint.         Type_specifier ::= "int";
 Name.        Direct_declarator ::= Ident ;
 ParenDecl.   Direct_declarator ::= "(" Direct_declarator ")" ;
 InnitArray.  Direct_declarator ::= Direct_declarator "[" Constant_expression "]" ;
-Incomplete.  Direct_declarator ::= Direct_declarator "[" "]" ;
+Incomplete.  Direct_declarator ::= Direct_declarator "[" "]" ;EX
 NewFuncDec.  Direct_declarator ::= Direct_declarator "(" Parameter_type ")" ;
 OldFuncDef.  Direct_declarator ::= Direct_declarator "(" [Ident] ")" ;
 OldFuncDec.  Direct_declarator ::= Direct_declarator "(" ")" ;
@@ -78,15 +88,7 @@ PrintS.   Stm ::= Print_stm ;
 SlabelTwo.   Labeled_stm ::= "case" Constant_expression ":" Stm ;
 SlabelThree. Labeled_stm ::= "default" ":" Stm;
 
-Scomp.   Compound_stm ::= "{" [Compund_stm_content] "}" ;
-
-ScompContentEmpty.	Compund_stm_content ::= ;
-ScompContentStm.	Compund_stm_content ::= Stm;
-ScompContentDec.	Compund_stm_content ::= External_declaration;
-
-(:[]).   [Compund_stm_content] ::= Compund_stm_content ;
-(:).     [Compund_stm_content] ::= Compund_stm_content [Compund_stm_content];
-
+Scomp.   Compound_stm ::= "{" [Compund_content] "}" ;
 
 SexprOne.   Expression_stm ::= ";" ;
 SexprTwo.   Expression_stm ::= Exp ";" ;

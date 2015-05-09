@@ -3,7 +3,6 @@
 
 entrypoints Program, Stm, Exp ;
 
-
 Progr.  Program ::= [Compund_content] ;
 
 ScompContentEmpty.	Compund_content ::= ;
@@ -14,7 +13,7 @@ ScompContentDec.	Compund_content ::= Dec;
 (:).     [Compund_content] ::= Compund_content [Compund_content];
 
 
--- NEW DEC + DEF
+-- DECLARATIONS
 VariableDec. Dec ::= Variable ";" ;
 FuncDec.     Dec ::= Function ;
 
@@ -22,13 +21,6 @@ Tbool.        Type_specifier ::= "bool";
 Tint.         Type_specifier ::= "int";
 
 DecBase.  Dec_base ::= Type_specifier Ident;
-
-InitExpr.    Initializer ::= Exp2 ;
-InitListOne. Initializer ::= "{" Initializers "}" ;
-InitListTwo. Initializer ::= "{" Initializers "," "}" ;
-
-AnInit.   Initializers ::= Initializer ;
-MoreInit. Initializers ::= Initializers "," Initializer ;
 
 
 InitDec.               Variable ::= Initialized_variable ;
@@ -38,73 +30,19 @@ UninitSimpleTypeDec.   Uninitialized_variable ::= Dec_base ;
 UninitArr.             Uninitialized_variable ::= Dec_base "[" Constant_expression "]";
 
 InitSimpleTypeDec.     Initialized_variable ::= Dec_base "=" Initializer;
-InitArr.               Initialized_variable ::= Dec_base "[" "]" "=" Initializer;
+InitArr.               Initialized_variable ::= Dec_base "[" "]" "=" "{" [Initializer] "}";
 
--- TODO funkcje bez parametrow
+InitExpr.    Initializer ::= Exp2 ;
+InitIdent.   Initializer ::= Ident ;
+separator nonempty Initializer "," ;
+
+
 NoParamFunc.	Function ::= Dec_base "(" ")" Namespace_stm ;
 ParamFunc.	    Function ::= Dec_base "(" [Param] ")" Namespace_stm ;
 
 separator nonempty Param "," ;
 
 FuncParam.   Param ::= Uninitialized_variable ;
-
--- DECLARATIONS
-
---(:[]).    [External_declaration] ::= External_declaration;
---(:).      [External_declaration] ::= External_declaration [External_declaration];
---
---Afunc.  External_declaration ::= Function_def ;
---Global. External_declaration ::= Dec ;
---
---NewFunc.     Function_def ::= Type_specifier Direct_declarator Namespace_stm ;
---
---Declarators.   Dec ::= Type_specifier Init_declarator ";" ;
---
---OnlyDecl.  Init_declarator ::= Direct_declarator ;
---InitDecl.  Init_declarator ::= Direct_declarator "=" Initializer;
---
---Tbool.        Type_specifier ::= "bool";
---Tint.         Type_specifier ::= "int";
---
---Name.        Direct_declarator ::= Ident ;
---ParenDecl.   Direct_declarator ::= "(" Direct_declarator ")" ;
---InnitArray.  Direct_declarator ::= Direct_declarator "[" Constant_expression "]" ;
---Incomplete.  Direct_declarator ::= Direct_declarator "[" "]" ;EX
---NewFuncDec.  Direct_declarator ::= Direct_declarator "(" Parameter_type ")" ;
---OldFuncDef.  Direct_declarator ::= Direct_declarator "(" [Ident] ")" ;
---OldFuncDec.  Direct_declarator ::= Direct_declarator "(" ")" ;
---
---AllSpec.  Parameter_type ::= Parameter_declarations ;
---
---ParamDec.     Parameter_declarations ::= Parameter_declaration ;                   
---MoreParamDec. Parameter_declarations ::= Parameter_declarations "," Parameter_declaration ;
---
---OnlyType.      Parameter_declaration ::= Type_specifier ;
---TypeAndParam.  Parameter_declaration ::= Type_specifier Direct_declarator ;
---Abstract.      Parameter_declaration ::= Type_specifier Abstract_declarator ;
---
---
---(:[]).   [Ident] ::= Ident ;
---(:).     [Ident] ::= Ident "," [Ident] ;
---
---InitExpr.    Initializer ::= Exp2 ;
---InitListOne. Initializer ::= "{" Initializers "}" ;
---InitListTwo. Initializer ::= "{" Initializers "," "}" ;
---
---
---AnInit.   Initializers ::= Initializer ;
---MoreInit. Initializers ::= Initializers "," Initializer ;
---
---
---WithinParentes.  Abstract_declarator ::= "(" Abstract_declarator ")" ;
---Array.           Abstract_declarator ::= "[" "]" ;
---InitiatedArray.  Abstract_declarator ::= "[" Constant_expression "]" ;
---UnInitiated.     Abstract_declarator ::= Abstract_declarator "[" "]" ;
---Initiated.       Abstract_declarator ::= Abstract_declarator "[" Constant_expression "]" ;
---OldFunction.     Abstract_declarator ::= "(" ")" ;
---NewFunction.     Abstract_declarator ::= "(" Parameter_type ")" ;
---OldFuncExpr.     Abstract_declarator ::= Abstract_declarator "(" ")" ;
---NewFuncExpr.     Abstract_declarator ::= Abstract_declarator "(" Parameter_type ")" ;
 
 
 -- STATEMANTS
@@ -179,24 +117,25 @@ BFalse.	CBool ::= "false";
 
 Especial. Constant_expression ::= Exp3;
 
-_. Exp   ::= Exp2 ;
-_. Exp2  ::= Exp3 ;
-_. Exp3  ::= Exp4 ;
-_. Exp4  ::= Exp5 ;
-_. Exp5  ::= Exp6 ;
-_. Exp6  ::= Exp7 ;
-_. Exp7  ::= Exp8 ;
-_. Exp8  ::= Exp9 ;
-_. Exp9  ::= Exp10 ;
-_. Exp10 ::= Exp11 ;
-_. Exp11 ::= Exp12 ;
-_. Exp12 ::= Exp13 ;
-_. Exp13 ::= Exp14 ;
-_. Exp14 ::= Exp15 ;
-_. Exp15 ::= Exp16 ;
-_. Exp16 ::= Exp17 ;
-_. Exp17 ::= "(" Exp ")" ;
+--_. Exp   ::= Exp2 ;
+--_. Exp2  ::= Exp3 ;
+--_. Exp3  ::= Exp4 ;
+--_. Exp4  ::= Exp5 ;
+--_. Exp5  ::= Exp6 ;
+--_. Exp6  ::= Exp7 ;
+--_. Exp7  ::= Exp8 ;
+--_. Exp8  ::= Exp9 ;
+--_. Exp9  ::= Exp10 ;
+--_. Exp10 ::= Exp11 ;
+--_. Exp11 ::= Exp12 ;
+--_. Exp12 ::= Exp13 ;
+--_. Exp13 ::= Exp14 ;
+--_. Exp14 ::= Exp15 ;
+--_. Exp15 ::= Exp16 ;
+--_. Exp16 ::= Exp17 ;
+--_. Exp17 ::= "(" Exp ")" ;
 
+coercions Exp 17 ;
 
 Plus.        Unary_operator ::= "+" ;
 Negative.    Unary_operator ::= "-" ;

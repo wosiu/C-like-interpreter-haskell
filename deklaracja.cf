@@ -14,6 +14,7 @@ ScompContentDec.	Compund_content ::= Dec;
 
 
 -- DECLARATIONS
+
 VariableDec. Dec ::= Variable ";" ;
 FuncDec.     Dec ::= Function ;
 
@@ -32,6 +33,7 @@ UninitArr.             Uninitialized_variable ::= Dec_base "[" Constant_expressi
 InitSimpleTypeDec.     Initialized_variable ::= Dec_base "=" Initializer;
 InitArr.               Initialized_variable ::= Dec_base "[" "]" "=" "{" [Initializer] "}";
 
+-- TODO może zostać samo Exp? bo Exo obejmuje też Ident
 InitExpr.    Initializer ::= Exp2 ;
 InitIdent.   Initializer ::= Ident ;
 separator nonempty Initializer "," ;
@@ -101,8 +103,10 @@ Epreinc.     Exp15 ::= "++" Exp15;
 Epredec.     Exp15 ::= "--" Exp15;
 Epreop.      Exp15 ::= Unary_operator Exp14;
 Earray.      Exp16 ::= Exp16 "[" Exp "]" ;
+-- TODO poprawic wolanie funkcji, teraz mozna a()()
 Efunk.       Exp16 ::= Exp16 "(" ")";
 Efunkpar.    Exp16 ::= Exp16 "(" [Exp2] ")";
+-- TODO zrobic tylko na Ident
 Epostinc.    Exp16 ::= Exp16 "++";
 Epostdec.    Exp16 ::= Exp16 "--";
 Evar.        Exp17 ::= Ident;

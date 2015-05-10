@@ -13,7 +13,7 @@ type VEnv = M.Map Ident Loc -- środowisko zmiennych
 type FEnv = M.Map Ident Function -- środowisko funkcji
 
 -- TODO arrays, bool - na razie obsluguje tylko inty, brak type checking
-data Val = Int | Bool | Array
+type Val = Int
 type St	= M.Map Loc Val	-- stan
 
 data Env = Env {
@@ -50,12 +50,19 @@ takeLocation ident = do
 	-- TODO obsluga bledu
 	return loc
 
-takeValueFromLoc :: Loc -> Semantics Int
+takeFunction :: Ident -> Semantics Function
+takeFunction ident = do
+	fenv <- asks fEnv
+	let Just fun = M.lookup ident fenv
+	-- TODO obsluga bledu
+	return fun
+
+takeValueFromLoc :: Loc -> Semantics Val
 takeValueFromLoc loc = do
 	Just val <- gets (M.lookup loc)
 	return val
 
-takeValueFromIdent :: Ident -> Semantics Int
+takeValueFromIdent :: Ident -> Semantics Val
 takeValueFromIdent ident = do
 	loc <- takeLocation ident
 	Just val <- gets (M.lookup loc)

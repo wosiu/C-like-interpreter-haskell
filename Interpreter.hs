@@ -2,6 +2,8 @@ module Interpreter where
 
 import Absdeklaracja
 import ErrM
+import SemanticUtils
+
 type Result = Err String
 
 failure :: Show a => a -> Result

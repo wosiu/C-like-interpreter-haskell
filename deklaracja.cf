@@ -23,7 +23,6 @@ Tint.         Type_specifier ::= "int";
 
 DecBase.  Dec_base ::= Type_specifier Ident;
 
-
 InitDec.               Variable ::= Initialized_variable ;
 UninitDec.             Variable ::= Uninitialized_variable ;
 
@@ -33,11 +32,8 @@ UninitArr.             Uninitialized_variable ::= Dec_base "[" Constant_expressi
 InitSimpleTypeDec.     Initialized_variable ::= Dec_base "=" Initializer;
 InitArr.               Initialized_variable ::= Dec_base "[" "]" "=" "{" [Initializer] "}";
 
--- TODO może zostać samo Exp? bo Exo obejmuje też Ident
 InitExpr.    Initializer ::= Exp2 ;
-InitIdent.   Initializer ::= Ident ;
 separator nonempty Initializer "," ;
-
 
 NoParamFunc.	Function ::= Dec_base "(" ")" Namespace_stm ;
 ParamFunc.	    Function ::= Dec_base "(" [Param] ")" Namespace_stm ;
@@ -57,27 +53,27 @@ IterS.    Stm ::= Iter_stm ;
 JumpS.    Stm ::= Jump_stm ;
 PrintS.   Stm ::= Print_stm ;
 
-SlabelTwo.   Labeled_stm ::= "case" Constant_expression ":" Stm ;
-SlabelThree. Labeled_stm ::= "default" ":" Stm;
+Scase.    Labeled_stm ::= "case" Constant_expression ":" Stm ;
+Sdefault. Labeled_stm ::= "default" ":" Stm;
 
-Sspace.     Namespace_stm ::= "{" [Compund_content] "}" ;
+Snamespace. Namespace_stm ::= "{" [Compund_content] "}" ;
 
-SexprOne.   Expression_stm ::= ";" ;
-SexprTwo.   Expression_stm ::= Exp ";" ;
+Sexpr.      Expression_stm ::= Exp ";" ;
 
-SselOne.    Selection_stm ::= "if" "(" Exp ")" Stm ;
-SselTwo.    Selection_stm ::= "if" "(" Exp ")" Stm "else" Stm ;
-SselThree.  Selection_stm ::= "switch" "(" Exp ")" Stm ;
+Sif.      Selection_stm ::= "if" "(" Exp ")" Stm ;
+SifElse.  Selection_stm ::= "if" "(" Exp ")" Stm "else" Stm ;
+Sswitch.  Selection_stm ::= "switch" "(" Exp ")" Stm ;
 
-SiterOne.   Iter_stm ::= "while" "(" Exp ")" Stm;
-SiterThree. Iter_stm ::= "for" "(" Expression_stm Expression_stm ")" Stm ;
-SiterFour.  Iter_stm ::= "for" "(" Expression_stm Expression_stm Exp ")" Stm;
+Swhile.     Iter_stm ::= "while" "(" Exp ")" Stm;
+Sfor.       Iter_stm ::= "for" "(" Exp_or_empty ";" Exp_or_empty ";" Exp_or_empty ")" Stm;
+SemptyExp.    Exp_or_empty ::= ;
+SnonemptyExp. Exp_or_empty ::= Exp ;
 
-SjumpTwo.   Jump_stm ::= "continue" ";" ;
-SjumpThree. Jump_stm ::= "break" ";" ;
-SjumpFive.  Jump_stm ::= "return" Exp ";" ;
+Scontinue.  Jump_stm ::= "continue" ";" ;
+Sbreak.     Jump_stm ::= "break" ";" ;
+Sreturn.    Jump_stm ::= "return" Exp ";" ;
 
-SPrint.	    Print_stm ::= "print" "(" Exp ")" ";";
+SPrint.	  Print_stm ::= "print" "(" Exp2 ")" ";";
 
 (:[]).   [Stm] ::= Stm ;
 (:).     [Stm] ::= Stm [Stm];
@@ -99,16 +95,14 @@ Eplus.       Exp12 ::= Exp12 "+" Exp13;
 Eminus.      Exp12 ::= Exp12 "-" Exp13;
 Etimes.      Exp13 ::= Exp13 "*" Exp14;
 Ediv.        Exp13 ::= Exp13 "/" Exp14;
-Epreinc.     Exp15 ::= "++" Exp15;
-Epredec.     Exp15 ::= "--" Exp15;
+Epreinc.     Exp15 ::= "++" Ident;
+Epredec.     Exp15 ::= "--" Ident;
 Epreop.      Exp15 ::= Unary_operator Exp14;
-Earray.      Exp16 ::= Exp16 "[" Exp "]" ;
--- TODO poprawic wolanie funkcji, teraz mozna a()()
-Efunk.       Exp16 ::= Exp16 "(" ")";
-Efunkpar.    Exp16 ::= Exp16 "(" [Exp2] ")";
--- TODO zrobic tylko na Ident
-Epostinc.    Exp16 ::= Exp16 "++";
-Epostdec.    Exp16 ::= Exp16 "--";
+Earray.      Exp16 ::= Ident "[" Exp "]" ;
+Efunk.       Exp16 ::= Ident "(" ")";
+Efunkpar.    Exp16 ::= Ident "(" [Exp2] ")";
+Epostinc.    Exp16 ::= Ident "++";
+Epostdec.    Exp16 ::= Ident "--";
 Evar.        Exp17 ::= Ident;
 Econst.      Exp17 ::= Constant;
 
@@ -117,7 +111,6 @@ Eint.          Constant ::= Integer;
 
 BTrue.	CBool ::= "true";
 BFalse.	CBool ::= "false";
-
 
 Especial. Constant_expression ::= Exp3;
 

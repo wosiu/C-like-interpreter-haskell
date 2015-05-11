@@ -37,8 +37,9 @@ evalContent [] = do
 transCompund_content :: Compund_content -> Semantics Env
 transCompund_content x = do
 	case x of
-		ScompContentEmpty -> return emptyEnv
-		ScompContentStm stm -> return emptyEnv
+		ScompContentEmpty -> ask
+		-- TODO
+		ScompContentStm stm -> ask
 		ScompContentDec dec -> (transDec dec)
 
 
@@ -87,12 +88,10 @@ transInitialized_variable x = do
 		InitArr dec_base initializers -> return emptyEnv
 
 
--- todo any val, e.g. bool
 transInitializer :: Initializer -> Semantics Val
 transInitializer x = do
 	case x of
-		-- TODO this is mock
-		InitExpr exp -> return 5
+		InitExpr exp -> transExp exp
 
 
 transFunction :: Function -> Result
@@ -164,44 +163,49 @@ transPrint_stm x = case x of
 	SPrint exp -> failure x
 
 
-transExp :: Exp -> Result
-transExp x = case x of
-	Ecomma exp1 exp2 -> failure x
-	Eassign exp1 assignment_op2 exp3 -> failure x
-	Elor exp1 exp2 -> failure x
-	Eland exp1 exp2 -> failure x
-	Eeq exp1 exp2 -> failure x
-	Eneq exp1 exp2 -> failure x
-	Elthen exp1 exp2 -> failure x
-	Egrthen exp1 exp2 -> failure x
-	Ele exp1 exp2 -> failure x
-	Ege exp1 exp2 -> failure x
-	Eplus exp1 exp2 -> failure x
-	Eminus exp1 exp2 -> failure x
-	Etimes exp1 exp2 -> failure x
-	Ediv exp1 exp2 -> failure x
-	Epreinc id -> failure x
-	Epredec id -> failure x
-	Epreop unary_operator exp -> failure x
-	Earray id exp -> failure x
-	Efunk id -> failure x
-	Efunkpar id exps -> failure x
-	Epostinc id -> failure x
-	Epostdec id -> failure x
-	Evar id -> failure x
-	Econst constant -> failure x
+transExp :: Exp -> Semantics Val
+transExp x = do
+	env <- ask
+	case x of
+		--Ecomma exp1 exp2 -> return (emptyEnv, 0)
+		Eassign ident assignment_op exp -> do
+			val <- transExp exp
+			changeVarValue ident val
+			return val
+		Elor exp1 exp2 -> return 0
+		Eland exp1 exp2 -> return 0
+		Eeq exp1 exp2 -> return 0
+		Eneq exp1 exp2 -> return 0
+		Elthen exp1 exp2 -> return 0
+		Egrthen exp1 exp2 -> return 0
+		Ele exp1 exp2 -> return 0
+		Ege exp1 exp2 -> return 0
+		Eplus exp1 exp2 -> return 0
+		Eminus exp1 exp2 -> return 0
+		Etimes exp1 exp2 -> return 0
+		Ediv exp1 exp2 -> return 0
+		Epreinc ident -> return 0
+		Epredec ident -> return 0
+		Epreop unary_operator exp -> return 0
+		Epostinc ident -> return 0
+		Epostdec ident -> return 0
+		Efunk ident -> return 0
+		Efunkpar ident exps -> return 0
+		Earray ident exp -> return 0
+		Evar ident -> takeValueFromIdent ident
+		Econst constant -> return $ transConstant constant
 
 
-transConstant :: Constant -> Result
+transConstant :: Constant -> Val
 transConstant x = case x of
-	Ebool cbool -> failure x
-	Eint n -> failure x
+	Ebool cbool -> transCBool cbool
+	Eint n -> fromInteger n
 
 
-transCBool :: CBool -> Result
+transCBool :: CBool -> Val
 transCBool x = case x of
-	BTrue -> failure x
-	BFalse -> failure x
+	BTrue -> 1
+	BFalse -> 0
 
 
 transConstant_expression :: Constant_expression -> Result
@@ -223,6 +227,3 @@ transAssignment_op x = case x of
 	AssignDiv -> failure x
 	AssignAdd -> failure x
 	AssignSub -> failure x
-
-
-

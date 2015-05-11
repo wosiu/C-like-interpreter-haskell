@@ -16,7 +16,7 @@ type Loc = Int -- lokacja
 type VEnv = M.Map Ident Loc -- środowisko zmiennych
 type FEnv = M.Map Ident Function -- środowisko funkcji
 
--- TODO arrays, bool - na razie obsluguje tylko inty, brak type checking
+-- bool represented as Int
 type Val = Int
 type St	= M.Map Loc Val	-- stan
 
@@ -50,6 +50,11 @@ takeLocation ident = do
 	let Just loc = M.lookup ident venv
 	-- TODO ladniejsza obsluga bledu
 	return loc
+
+changeVarValue :: Ident -> Val -> Semantics ()
+changeVarValue ident newVal = do
+	loc <- takeLocation ident
+	modify (M.insert loc newVal)
 
 takeFunction :: Ident -> Semantics Function
 takeFunction ident = do

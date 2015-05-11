@@ -1,5 +1,7 @@
 module Interpreter where
 
+import Control.Monad
+
 import Absdeklaracja
 import ErrM
 import SemanticUtils
@@ -14,22 +16,29 @@ transIdent x = case x of
   Ident str  -> failure x
 
 
-transProgram :: Program -> Result
-transProgram x = case x of
-  Progr compund_contents  -> failure x
+transProgram :: Program -> Semantics ()
+transProgram x = do {
+		case x of
+			Progr compund_contents  -> mapM_ transCompund_content compund_contents
+			-- todo fold with env
+	}
 
 
-transCompund_content :: Compund_content -> Result
-transCompund_content x = case x of
-  ScompContentEmpty  -> failure x
-  ScompContentStm stm  -> failure x
-  ScompContentDec dec  -> failure x
+transCompund_content :: Compund_content -> Semantics Env
+transCompund_content x = do {
+		case x of
+			ScompContentEmpty  -> return emptyEnv
+			ScompContentStm stm  -> return emptyEnv
+			ScompContentDec dec  -> (transDec dec)
+	}
 
 
-transDec :: Dec -> Result
-transDec x = case x of
-  VariableDec variable  -> failure x
-  FuncDec function  -> failure x
+transDec :: Dec -> Semantics Env
+transDec x = do {
+	case x of
+		VariableDec variable  -> (transVariable variable)
+		FuncDec function  -> return emptyEnv
+}
 
 
 transType_specifier :: Type_specifier -> Result
@@ -37,16 +46,18 @@ transType_specifier x = case x of
   Tbool  -> failure x
   Tint  -> failure x
 
-
-transDec_base :: Dec_base -> Result
+-- todo return tuple with type
+transDec_base :: Dec_base -> Ident
 transDec_base x = case x of
-  DecBase type_specifier id  -> failure x
+  DecBase type_specifier id  -> id
 
 
-transVariable :: Variable -> Result
-transVariable x = case x of
-  InitDec initialized_variable  -> failure x
-  UninitDec uninitialized_variable  -> failure x
+transVariable :: Variable -> Semantics Env
+transVariable x = do {
+		case x of
+			InitDec initialized_variable  -> (transInitialized_variable initialized_variable)
+			UninitDec uninitialized_variable  -> return emptyEnv
+	}
 
 
 transUninitialized_variable :: Uninitialized_variable -> Result
@@ -55,15 +66,26 @@ transUninitialized_variable x = case x of
   UninitArr dec_base constant_expression  -> failure x
 
 
-transInitialized_variable :: Initialized_variable -> Result
-transInitialized_variable x = case x of
-  InitSimpleTypeDec dec_base initializer  -> failure x
-  InitArr dec_base initializers  -> failure x
+transInitialized_variable :: Initialized_variable -> Semantics Env
+transInitialized_variable x = do {
+		case x of
+			InitSimpleTypeDec dec_base initializer  -> do {
+				-- TODO !!!!!!!!!!!!
+				--val <- transInitializer initializer
+				-- todo type
+				--let ident = transDec_base dec_base
+				putVarDecl (Ident "asd") 5
+			}
+			InitArr dec_base initializers  -> return emptyEnv
+	}
 
 
-transInitializer :: Initializer -> Result
-transInitializer x = case x of
-  InitExpr exp  -> failure x
+transInitializer :: Initializer -> Semantics Int
+transInitializer x = do {
+		case x of
+			-- TODO this is mock
+			InitExpr exp  -> return 5
+	}
 
 
 transFunction :: Function -> Result

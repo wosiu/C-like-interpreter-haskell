@@ -8,6 +8,10 @@ import Data.Maybe
 import Control.Monad.Reader
 import Control.Monad.State
 
+
+-- TODO dodac ErrorT do obslugi bledow
+type Semantics = ReaderT Env (StateT St IO)
+
 type Loc = Int -- lokacja
 type VEnv = M.Map Ident Loc -- środowisko zmiennych
 type FEnv = M.Map Ident Function -- środowisko funkcji
@@ -29,9 +33,6 @@ emptyEnv = Env {vEnv = M.empty, fEnv = M.empty}
 initialSt :: St
 initialSt = M.singleton 0 1
 
--- TODO dodac ErrorT do obslugi bledow
-type Semantics = ReaderT Env (StateT St IO)
-
 class Printer p where
 	printString :: String -> p ()
 	printValue :: Int -> p ()
@@ -47,14 +48,14 @@ takeLocation :: Ident -> Semantics Loc
 takeLocation ident = do
 	venv <- asks vEnv
 	let Just loc = M.lookup ident venv
-	-- TODO obsluga bledu
+	-- TODO ladniejsza obsluga bledu
 	return loc
 
 takeFunction :: Ident -> Semantics Function
 takeFunction ident = do
 	fenv <- asks fEnv
 	let Just fun = M.lookup ident fenv
-	-- TODO obsluga bledu
+	-- TODO ladniejsza obsluga bledu
 	return fun
 
 takeValueFromLoc :: Loc -> Semantics Val
@@ -67,3 +68,13 @@ takeValueFromIdent ident = do
 	loc <- takeLocation ident
 	Just val <- gets (M.lookup loc)
 	return val
+
+putVarDecl :: Ident -> Val -> Semantics Env
+putVarDecl ident val = do
+  Just newLoc <- gets (M.lookup 0)
+  modify (M.insert newLoc val)
+  modify (M.insert 0 (newLoc+1))
+  env <- ask
+  let venv = vEnv env
+  let fenv = fEnv env
+  return Env { vEnv = (M.insert ident newLoc venv), fEnv = fenv }

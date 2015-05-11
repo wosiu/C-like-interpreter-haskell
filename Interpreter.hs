@@ -1,6 +1,8 @@
 module Interpreter where
 
 import Control.Monad
+import Control.Monad.Reader
+import Control.Monad.State
 
 import Absdeklaracja
 import ErrM
@@ -16,13 +18,36 @@ transIdent x = case x of
   Ident str  -> failure x
 
 
-transProgram :: Program -> Semantics ()
-transProgram x = do {
-		case x of
-			Progr compund_contents  -> mapM_ transCompund_content compund_contents
-			-- todo fold with env
-	}
+--transProgram :: Program -> Semantics Env
+--transProgram x = do {
+--		case x of
+--			--Progr compund_contents  -> mapM_ transCompund_content compund_contents
+--			Progr compund_contents  -> foldM evalContent ask compund_contents
+--			-- todo fold with env
+--	}
+--
+--evalContent :: (Monad m) => Semantics Env -> Compund_content  -> m Semantics Env
+--evalContent senv content = do
+--	-- TODO ?
+--	env <- senv
+--	local (const env) transCompund_content
 
+
+transProgram :: Program -> Semantics Env
+transProgram (Progr compund_contents) = do
+		a <- evalContent compund_contents
+		-- debug
+		liftIO $ print a
+		return a
+
+evalContent :: [Compund_content]  -> Semantics Env
+evalContent (x:xs) = do
+		env2 <- transCompund_content x
+		local (const env2) (evalContent xs)
+
+evalContent [] = do
+	env <- ask
+	return env
 
 transCompund_content :: Compund_content -> Semantics Env
 transCompund_content x = do {

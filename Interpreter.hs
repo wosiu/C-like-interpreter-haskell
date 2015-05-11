@@ -25,22 +25,32 @@ transProgram (Progr compund_contents) = do
 	liftIO $ print a
 	return a
 
+
 evalContent :: [Compund_content] -> Semantics Env
 evalContent (x:xs) = do
 	env2 <- transCompund_content x
 	local (const env2) (evalContent xs)
 
+
 evalContent [] = do
 	env <- ask
 	return env
 
+
 transCompund_content :: Compund_content -> Semantics Env
 transCompund_content x = do
 	case x of
-		ScompContentEmpty -> ask
 		-- TODO
 		ScompContentStm stm -> ask
 		ScompContentDec dec -> (transDec dec)
+		ScompContentExp exp -> ask
+		ScompContentSpace namespace -> ask
+
+
+transNamespace :: Namespace -> Result
+transNamespace x = case x of
+	BlockSp compund_contents -> failure x
+	EmptyBlockSp -> failure x
 
 
 transDec :: Dec -> Semantics Env
@@ -108,8 +118,6 @@ transParam x = case x of
 transStm :: Stm -> Result
 transStm x = case x of
 	LabelS labeled_stm -> failure x
-	SpaceS namespace_stm -> failure x
-	ExprS expression_stm -> failure x
 	SelS selection_stm -> failure x
 	IterS iter_stm -> failure x
 	JumpS jump_stm -> failure x
@@ -118,31 +126,21 @@ transStm x = case x of
 
 transLabeled_stm :: Labeled_stm -> Result
 transLabeled_stm x = case x of
-	Scase constant_expression stm -> failure x
-	Sdefault stm -> failure x
-
-
-transNamespace_stm :: Namespace_stm -> Result
-transNamespace_stm x = case x of
-	Snamespace compund_contents -> failure x
-
-
-transExpression_stm :: Expression_stm -> Result
-transExpression_stm x = case x of
-	Sexpr exp -> failure x
+	Scase constant_expression compund_content -> failure x
+	Sdefault compund_content -> failure x
 
 
 transSelection_stm :: Selection_stm -> Result
 transSelection_stm x = case x of
-	Sif exp stm -> failure x
-	SifElse exp stm1 stm2 -> failure x
-	Sswitch exp stm -> failure x
+	Sif exp compund_content -> failure x
+	SifElse exp compund_content1 compund_content2 -> failure x
+	Sswitch exp compund_content -> failure x
 
 
 transIter_stm :: Iter_stm -> Result
 transIter_stm x = case x of
-	Swhile exp stm -> failure x
-	Sfor exp_or_empty1 exp_or_empty2 exp_or_empty3 stm4 -> failure x
+	Swhile exp compund_content -> failure x
+	Sfor exp_or_empty1 exp_or_empty2 exp_or_empty3 compund_content4 -> failure x
 
 
 transExp_or_empty :: Exp_or_empty -> Result

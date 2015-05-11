@@ -2,15 +2,19 @@
 -- szkielet zrodlo: https://github.com/BNFC/bnfc/blob/master/examples/C/C.cf
 
 entrypoints Program, Stm, Exp ;
-
 Progr.  Program ::= [Compund_content] ;
 
-ScompContentEmpty.	Compund_content ::= ;
-ScompContentStm.	Compund_content ::= Stm;
-ScompContentDec.	Compund_content ::= Dec;
+ScompContentStm.	Compund_content ::= Stm ;
+ScompContentDec.	Compund_content ::= Dec ;
+ScompContentExp.	Compund_content ::= Exp2 ";" ;
+ScompContentSpace.	Compund_content ::= Namespace ;
+
+BlockSp.       Namespace ::= "{" [Compund_content] "}" ;
+EmptyBlockSp.  Namespace ::= "{" "}" ;
+
 
 (:[]).   [Compund_content] ::= Compund_content ;
-(:).     [Compund_content] ::= Compund_content [Compund_content];
+(:).     [Compund_content] ::= Compund_content [Compund_content] ;
 
 
 -- DECLARATIONS
@@ -27,16 +31,16 @@ InitDec.               Variable ::= Initialized_variable ;
 UninitDec.             Variable ::= Uninitialized_variable ;
 
 UninitSimpleTypeDec.   Uninitialized_variable ::= Dec_base ;
-UninitArr.             Uninitialized_variable ::= Dec_base "[" Constant_expression "]";
+UninitArr.             Uninitialized_variable ::= Dec_base "[" Constant_expression "]" ;
 
 InitSimpleTypeDec.     Initialized_variable ::= Dec_base "=" Initializer;
-InitArr.               Initialized_variable ::= Dec_base "[" "]" "=" "{" [Initializer] "}";
+InitArr.               Initialized_variable ::= Dec_base "[" "]" "=" "{" [Initializer] "}" ;
 
 InitExpr.    Initializer ::= Exp2 ;
 separator nonempty Initializer "," ;
 
-NoParamFunc.	Function ::= Dec_base "(" ")" Namespace_stm ;
-ParamFunc.	    Function ::= Dec_base "(" [Param] ")" Namespace_stm ;
+NoParamFunc.	Function ::= Dec_base "(" ")" Namespace ;
+ParamFunc.	    Function ::= Dec_base "(" [Param] ")" Namespace ;
 
 separator nonempty Param "," ;
 
@@ -46,26 +50,21 @@ FuncParam.   Param ::= Uninitialized_variable ;
 -- STATEMANTS
 
 LabelS.   Stm ::= Labeled_stm ;
-SpaceS.   Stm ::= Namespace_stm ;
-ExprS.    Stm ::= Expression_stm ;
 SelS.     Stm ::= Selection_stm ;
 IterS.    Stm ::= Iter_stm ;
 JumpS.    Stm ::= Jump_stm ;
 PrintS.   Stm ::= Print_stm ;
 
-Scase.    Labeled_stm ::= "case" Constant_expression ":" Stm ;
-Sdefault. Labeled_stm ::= "default" ":" Stm;
+Scase.    Labeled_stm ::= "case" Constant_expression ":" Compund_content ;
+Sdefault. Labeled_stm ::= "default" ":" Compund_content ;
 
-Snamespace. Namespace_stm ::= "{" [Compund_content] "}" ;
 
-Sexpr.      Expression_stm ::= Exp ";" ;
+Sif.      Selection_stm ::= "if" "(" Exp ")" Compund_content ;
+SifElse.  Selection_stm ::= "if" "(" Exp ")" Compund_content "else" Compund_content ;
+Sswitch.  Selection_stm ::= "switch" "(" Exp ")" Compund_content ;
 
-Sif.      Selection_stm ::= "if" "(" Exp ")" Stm ;
-SifElse.  Selection_stm ::= "if" "(" Exp ")" Stm "else" Stm ;
-Sswitch.  Selection_stm ::= "switch" "(" Exp ")" Stm ;
-
-Swhile.     Iter_stm ::= "while" "(" Exp ")" Stm;
-Sfor.       Iter_stm ::= "for" "(" Exp_or_empty ";" Exp_or_empty ";" Exp_or_empty ")" Stm;
+Swhile.     Iter_stm ::= "while" "(" Exp ")" Compund_content;
+Sfor.       Iter_stm ::= "for" "(" Exp_or_empty ";" Exp_or_empty ";" Exp_or_empty ")" Compund_content ;
 SemptyExp.    Exp_or_empty ::= ;
 SnonemptyExp. Exp_or_empty ::= Exp ;
 
@@ -74,9 +73,6 @@ Sbreak.     Jump_stm ::= "break" ";" ;
 Sreturn.    Jump_stm ::= "return" Exp ";" ;
 
 SPrint.	  Print_stm ::= "print" "(" Exp2 ")" ";";
-
-(:[]).   [Stm] ::= Stm ;
-(:).     [Stm] ::= Stm [Stm];
 
 
 -- EXPRESSIONS
@@ -150,3 +146,4 @@ AssignAdd.    Assignment_op ::= "+=" ;
 AssignSub.    Assignment_op ::= "-=" ;
 
 comment "//";
+comment "/*" "*/" ;

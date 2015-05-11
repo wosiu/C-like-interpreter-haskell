@@ -43,7 +43,10 @@ transCompund_content x = do
 		-- TODO
 		ScompContentStm stm -> ask
 		ScompContentDec dec -> (transDec dec)
-		ScompContentExp exp -> ask
+		ScompContentExp exp -> do
+			transExp exp
+			ask
+		-- TODO
 		ScompContentSpace namespace -> ask
 
 
@@ -161,6 +164,13 @@ transPrint_stm x = case x of
 	SPrint exp -> failure x
 
 
+_transPairExp :: Exp -> Exp -> Semantics (Val, Val)
+_transPairExp e1 e2 = do
+	val1 <- transExp e1
+	val2 <- transExp e2
+	return (val1, val2)
+
+
 transExp :: Exp -> Semantics Val
 transExp x = do
 	env <- ask
@@ -170,18 +180,42 @@ transExp x = do
 			val <- transExp exp
 			changeVarValue ident val
 			return val
-		Elor exp1 exp2 -> return 0
-		Eland exp1 exp2 -> return 0
-		Eeq exp1 exp2 -> return 0
-		Eneq exp1 exp2 -> return 0
-		Elthen exp1 exp2 -> return 0
-		Egrthen exp1 exp2 -> return 0
-		Ele exp1 exp2 -> return 0
-		Ege exp1 exp2 -> return 0
-		Eplus exp1 exp2 -> return 0
-		Eminus exp1 exp2 -> return 0
-		Etimes exp1 exp2 -> return 0
-		Ediv exp1 exp2 -> return 0
+		Elor exp1 exp2 -> do
+			(a, b) <- _transPairExp exp1 exp2
+			return $ boolToInt (a /= 0 || b /= 0)
+		Eland exp1 exp2 -> do
+			(a, b) <- _transPairExp exp1 exp2
+			return $ boolToInt (a /= 0 && b /= 0)
+		Eeq exp1 exp2 -> do
+			(a, b) <- _transPairExp exp1 exp2
+			return $ boolToInt (a == b)
+		Eneq exp1 exp2 -> do
+			(a, b) <- _transPairExp exp1 exp2
+			return $ boolToInt (a /= b)
+		Elthen exp1 exp2 -> do
+			(a, b) <- _transPairExp exp1 exp2
+			return $ boolToInt $ a < b
+		Egrthen exp1 exp2 -> do
+			(a, b) <- _transPairExp exp1 exp2
+			return $ boolToInt $a > b
+		Ele exp1 exp2 -> do
+			(a, b) <- _transPairExp exp1 exp2
+			return $ boolToInt $a <= b
+		Ege exp1 exp2 -> do
+			(a, b) <- _transPairExp exp1 exp2
+			return $ boolToInt $ a >= b
+		Eplus exp1 exp2 -> do
+ 			(a, b) <- _transPairExp exp1 exp2
+ 			return $ a + b
+		Eminus exp1 exp2 -> do
+			(a, b) <- _transPairExp exp1 exp2
+			return $ a - b
+		Etimes exp1 exp2 -> do
+			(a, b) <- _transPairExp exp1 exp2
+			return $ a * b
+		Ediv exp1 exp2 -> do
+			(a, b) <- _transPairExp exp1 exp2
+			return $ div a b
 		Epreinc ident -> return 0
 		Epredec ident -> return 0
 		Epreop unary_operator exp -> return 0

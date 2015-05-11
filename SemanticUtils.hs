@@ -76,10 +76,14 @@ takeValueFromIdent ident = do
 
 putVarDecl :: Ident -> Val -> Semantics Env
 putVarDecl ident val = do
-  Just newLoc <- gets (M.lookup 0)
-  modify (M.insert newLoc val)
-  modify (M.insert 0 (newLoc+1))
-  env <- ask
-  let venv = vEnv env
-  let fenv = fEnv env
-  return Env { vEnv = (M.insert ident newLoc venv), fEnv = fenv }
+	Just newLoc <- gets (M.lookup 0)
+	modify (M.insert newLoc val)
+	modify (M.insert 0 (newLoc+1))
+	env <- ask
+	let venv = vEnv env
+	let fenv = fEnv env
+	return Env { vEnv = (M.insert ident newLoc venv), fEnv = fenv }
+
+boolToInt :: Bool -> Int
+boolToInt False = 0
+boolToInt True	= 1

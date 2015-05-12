@@ -56,6 +56,15 @@ changeVarValue ident newVal = do
 	loc <- takeLocation ident
 	modify (M.insert loc newVal)
 
+-- change value of variable under ident using given function and return new value
+mapVarValue :: Ident -> (Val -> Val) -> Semantics Val
+mapVarValue ident fun = do
+	a <- takeValueFromIdent ident
+	let b = fun a
+	changeVarValue ident b
+	return b
+
+
 takeFunction :: Ident -> Semantics Function
 takeFunction ident = do
 	fenv <- asks fEnv

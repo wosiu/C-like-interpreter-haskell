@@ -178,8 +178,7 @@ transExp x = do
 		--Ecomma exp1 exp2 -> return (emptyEnv, 0)
 		Eassign ident assignment_op exp -> do
 			val <- transExp exp
-			changeVarValue ident val
-			return val
+			transAssignment_op assignment_op ident val
 		Elor exp1 exp2 -> do
 			(a, b) <- _transPairExp exp1 exp2
 			return $ boolToInt (a /= 0 || b /= 0)
@@ -216,11 +215,15 @@ transExp x = do
 		Ediv exp1 exp2 -> do
 			(a, b) <- _transPairExp exp1 exp2
 			return $ div a b
-		Epreinc ident -> return 0
-		Epredec ident -> return 0
+		Epreinc ident -> mapVarValue ident ((+) 1)
+		Epredec ident -> mapVarValue ident ((-) 1)
 		Epreop unary_operator exp -> return 0
-		Epostinc ident -> return 0
-		Epostdec ident -> return 0
+		Epostinc ident -> do
+			a <- mapVarValue ident ((+) 1)
+			return (a - 1)
+		Epostdec ident -> do
+			a <- mapVarValue ident ((-) 1)
+			return (a + 1)
 		Efunk ident -> return 0
 		Efunkpar ident exps -> return 0
 		Earray ident exp -> return 0
@@ -252,10 +255,13 @@ transUnary_operator x = case x of
 	Logicalneg -> failure x
 
 
-transAssignment_op :: Assignment_op -> Result
-transAssignment_op x = case x of
-	Assign -> failure x
-	AssignMul -> failure x
-	AssignDiv -> failure x
-	AssignAdd -> failure x
-	AssignSub -> failure x
+transAssignment_op :: Assignment_op -> Ident -> Val -> Semantics Val
+transAssignment_op x ident val = do
+	case x of
+		Assign -> do
+			changeVarValue ident val
+			return val
+		AssignMul -> mapVarValue ident ((*) val)
+		AssignDiv -> mapVarValue ident (flip div val)
+		AssignAdd -> mapVarValue ident ((+) val)
+		AssignSub -> mapVarValue ident (flip (-) val )

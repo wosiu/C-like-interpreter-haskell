@@ -217,7 +217,9 @@ transExp x = do
 			return $ div a b
 		Epreinc ident -> mapVarValue ident ((+) 1)
 		Epredec ident -> mapVarValue ident ((-) 1)
-		Epreop unary_operator exp -> return 0
+		Epreop unary_operator exp -> do
+			a <- transExp exp
+			transUnary_operator unary_operator a
 		Epostinc ident -> do
 			a <- mapVarValue ident ((+) 1)
 			return (a - 1)
@@ -248,11 +250,11 @@ transConstant_expression x = case x of
 	Especial exp -> failure x
 
 
-transUnary_operator :: Unary_operator -> Result
-transUnary_operator x = case x of
-	Plus -> failure x
-	Negative -> failure x
-	Logicalneg -> failure x
+transUnary_operator :: Unary_operator -> Val -> Semantics Val
+transUnary_operator x val = case x of
+	Plus -> return val
+	Negative -> return (-val)
+	Logicalneg -> return $ boolToInt $ val == 0
 
 
 transAssignment_op :: Assignment_op -> Ident -> Val -> Semantics Val

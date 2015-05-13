@@ -39,9 +39,12 @@ evalContent [] = do
 
 transCompund_content :: Compund_content -> Semantics Env
 transCompund_content x = do
+	env <- ask
 	case x of
 		-- TODO
-		ScompContentStm stm -> ask
+		ScompContentStm stm -> do
+			transStm stm
+			return env
 		ScompContentDec dec -> (transDec dec)
 		ScompContentExp exp -> do
 			transExp exp
@@ -118,13 +121,14 @@ transParam x = case x of
 	FuncParam uninitialized_variable -> failure x
 
 
-transStm :: Stm -> Result
-transStm x = case x of
-	LabelS labeled_stm -> failure x
-	SelS selection_stm -> failure x
-	IterS iter_stm -> failure x
-	JumpS jump_stm -> failure x
-	PrintS print_stm -> failure x
+transStm :: Stm -> Semantics ()
+transStm x = do
+	case x of
+		LabelS labeled_stm -> return ()
+		SelS selection_stm -> transSelection_stm selection_stm
+		IterS iter_stm -> return ()
+		JumpS jump_stm -> return ()
+		PrintS print_stm -> return ()
 
 
 transLabeled_stm :: Labeled_stm -> Result
@@ -133,11 +137,25 @@ transLabeled_stm x = case x of
 	Sdefault compund_content -> failure x
 
 
-transSelection_stm :: Selection_stm -> Result
-transSelection_stm x = case x of
-	Sif exp compund_content -> failure x
-	SifElse exp compund_content1 compund_content2 -> failure x
-	Sswitch exp compund_content -> failure x
+transSelection_stm :: Selection_stm -> Semantics ()
+transSelection_stm x = do
+	case x of
+		Sif exp compund_content -> do
+			n <- transExp exp
+			if n /= 0 then do
+				_ <- transCompund_content compund_content
+				return ()
+			else
+				return ()
+		SifElse exp compund_content1 compund_content2 -> do
+			n <- transExp exp
+			if n /= 0 then do
+				_ <- transCompund_content compund_content1
+				return ()
+			else do
+				_ <- transCompund_content compund_content2
+				return ()
+		Sswitch exp compund_content -> return ()
 
 
 transIter_stm :: Iter_stm -> Result

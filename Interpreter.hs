@@ -44,7 +44,6 @@ transCompund_content :: Compund_content -> Semantics (Env, Jump)
 transCompund_content x = do
 	env <- ask
 	case x of
-		-- TODO
 		ScompContentStm stm -> do
 			jump <- transStm stm
 			return (env, jump)
@@ -54,14 +53,18 @@ transCompund_content x = do
 		ScompContentExp exp -> do
 			transExp exp
 			return (env, NOTHING)
-		-- TODO
-		ScompContentSpace namespace -> return (env, NOTHING)
+		ScompContentSpace namespace -> transNamespace namespace
 
 
-transNamespace :: Namespace -> Result
-transNamespace x = case x of
-	BlockSp compund_contents -> failure x
-	EmptyBlockSp -> failure x
+transNamespace :: Namespace -> Semantics (Env, Jump)
+transNamespace x = do
+	env <- ask
+	case x of
+		BlockSp compund_contents -> do
+			-- ignore environment from nested namespace
+			(_, jump) <- evalContent compund_contents
+			return (env, jump)
+		EmptyBlockSp -> return (env, NOTHING)
 
 
 transDec :: Dec -> Semantics Env

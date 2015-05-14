@@ -166,7 +166,7 @@ transSelection_stm x = do
 transIter_stm :: Iter_stm -> Semantics Jump
 transIter_stm x = do
 	case x of
-		Swhile exp compund_content -> return NOTHING
+		Swhile exp compund_content -> _forloop (SnonemptyExp exp) SemptyExp compund_content
 		Sfor exp_or_empty1 exp_or_empty2 exp_or_empty3 compund_content4 -> do
 			_ <- transExp_or_empty exp_or_empty1
 			_forloop exp_or_empty2 exp_or_empty3 compund_content4

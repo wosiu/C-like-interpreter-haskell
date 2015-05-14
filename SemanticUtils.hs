@@ -39,7 +39,7 @@ initialSt = M.singleton 0 1
 
 class Printer p where
 	printString :: String -> p ()
-	printValue :: Int -> p ()
+	printValue :: Show a => a -> p ()
 
 instance Printer Semantics where
 	printString str = liftIO $ putStr str

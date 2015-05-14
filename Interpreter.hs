@@ -22,7 +22,7 @@ transProgram :: Program -> Semantics Env
 transProgram (Progr compund_contents) = do
 	(env, jump) <- evalContent compund_contents
 	-- debug
-	liftIO $ print env
+	printValue env
 	case jump of
 		NOTHING -> return env
 		_ -> return env --to do error: Unmatched jump statement
@@ -34,7 +34,6 @@ evalContent (x:xs) = do
 	case jump of
 		NOTHING -> local (const env2) (evalContent xs)
 		_ -> return (env2, jump)
-
 
 evalContent [] = do
 	env <- ask
@@ -130,10 +129,10 @@ transParam x = case x of
 transStm :: Stm -> Semantics Jump
 transStm x = do
 	case x of
-		LabelS labeled_stm -> return NOTHING
+		--LabelS labeled_stm -> return NOTHING
 		SelS selection_stm -> transSelection_stm selection_stm
-		IterS iter_stm -> return NOTHING
-		JumpS jump_stm -> return NOTHING
+		IterS iter_stm -> transIter_stm iter_stm
+		JumpS jump_stm -> transJump_stm jump_stm
 		PrintS print_stm -> return NOTHING
 
 
@@ -164,16 +163,37 @@ transSelection_stm x = do
 		Sswitch exp compund_content -> return NOTHING
 
 
-transIter_stm :: Iter_stm -> Result
-transIter_stm x = case x of
-	Swhile exp compund_content -> failure x
-	Sfor exp_or_empty1 exp_or_empty2 exp_or_empty3 compund_content4 -> failure x
+transIter_stm :: Iter_stm -> Semantics Jump
+transIter_stm x = do
+	case x of
+		Swhile exp compund_content -> return NOTHING
+		Sfor exp_or_empty1 exp_or_empty2 exp_or_empty3 compund_content4 -> do
+			_ <- transExp_or_empty exp_or_empty1
+			_forloop exp_or_empty2 exp_or_empty3 compund_content4
 
 
-transExp_or_empty :: Exp_or_empty -> Result
-transExp_or_empty x = case x of
-	SemptyExp -> failure x
-	SnonemptyExp exp -> failure x
+_forloop :: Exp_or_empty -> Exp_or_empty -> Compund_content -> Semantics Jump
+_forloop stopCond postExp compund_content = do
+	stopExp <- transExp_or_empty stopCond
+	if stopExp == 0 then return NOTHING
+	else do
+		-- ignore environment changes made in for scope
+		(_, jump) <- transCompund_content compund_content
+		case jump of
+			-- quit from loop
+			BREAK -> return NOTHING
+			RETURN v -> return (RETURN v)
+			-- continue loop
+			_ -> do
+				_ <- transExp_or_empty postExp
+				_forloop stopCond postExp compund_content
+
+
+transExp_or_empty :: Exp_or_empty -> Semantics Val
+transExp_or_empty x = do
+	case x of
+		SemptyExp -> return 1
+		SnonemptyExp exp -> transExp exp
 
 
 transJump_stm :: Jump_stm -> Semantics Jump

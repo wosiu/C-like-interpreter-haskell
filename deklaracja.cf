@@ -40,7 +40,7 @@ InitExpr.    Initializer ::= Exp2 ;
 separator nonempty Initializer "," ;
 
 NoParamFunc.	Function ::= Dec_base "(" ")" Namespace ;
-ParamFunc.	    Function ::= Dec_base "(" [Param] ")" Namespace ;
+ParamFunc.	Function ::= Dec_base "(" [Param] ")" Namespace ;
 
 separator nonempty Param "," ;
 
@@ -49,19 +49,23 @@ FuncParam.   Param ::= Uninitialized_variable ;
 
 -- STATEMANTS
 
-LabelS.   Stm ::= Labeled_stm ;
 SelS.     Stm ::= Selection_stm ;
 IterS.    Stm ::= Iter_stm ;
 JumpS.    Stm ::= Jump_stm ;
 PrintS.   Stm ::= Print_stm ;
 
-Scase.    Labeled_stm ::= "case" Constant_expression ":" Compund_content ;
-Sdefault. Labeled_stm ::= "default" ":" Compund_content ;
-
-
 Sif.      Selection_stm ::= "if" "(" Exp ")" Compund_content ;
 SifElse.  Selection_stm ::= "if" "(" Exp ")" Compund_content "else" Compund_content ;
-Sswitch.  Selection_stm ::= "switch" "(" Exp ")" Compund_content ;
+
+-- to improve
+SswitchOne.   Selection_stm ::= "switch" "(" Exp ")" Switch_content ;
+SswitchMany.  Selection_stm ::= "switch" "(" Exp ")" "{" [Switch_content] "}";
+SswitchCase.  Switch_content ::= "case" Constant_expression ":" [Compund_content] ;
+SswitchDef.   Switch_content ::= "default" ":" [Compund_content] ;
+
+(:[]).   [Switch_content] ::= Switch_content ;
+(:).     [Switch_content] ::= Switch_content [Switch_content] ;
+
 
 Swhile.     Iter_stm ::= "while" "(" Exp ")" Compund_content;
 Sfor.       Iter_stm ::= "for" "(" Exp_or_empty ";" Exp_or_empty ";" Exp_or_empty ")" Compund_content ;

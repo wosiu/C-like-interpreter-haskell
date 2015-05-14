@@ -16,7 +16,8 @@ type Semantics = ReaderT Env (StateT St IO)
 
 type Loc = Int -- lokacja
 type VEnv = M.Map Ident Loc -- środowisko zmiennych
-type Fun = [FuncParam] -> Semantics Jump
+-- todo param type
+type Fun = [Int] -> Semantics Jump
 type FEnv = M.Map Ident Fun -- środowisko funkcji
 
 -- bool represented as Int
@@ -27,8 +28,9 @@ data Env = Env {
 		vEnv :: VEnv,
 		fEnv :: FEnv
 	}
-	deriving (Show)
 
+instance Show Env where
+	show env = "Environment debug: Variables: " ++ show (vEnv env) ++ ", Func: " ++ show (M.keys (fEnv env))
 
 data Jump = NOTHING | BREAK | CONTINUE | RETURN Val
 
@@ -72,12 +74,12 @@ mapVarValue ident fun = do
 	return b
 
 
-takeFunction :: Ident -> Semantics Function
-takeFunction ident = do
-	fenv <- asks fEnv
-	let Just fun = M.lookup ident fenv
-	-- TODO ladniejsza obsluga bledu
-	return fun
+--takeFunction :: Ident -> Semantics Function
+--takeFunction ident = do
+--	fenv <- asks fEnv
+--	let Just fun = M.lookup ident fenv
+--	-- TODO ladniejsza obsluga bledu
+--	return fun
 
 takeValueFromLoc :: Loc -> Semantics Val
 takeValueFromLoc loc = do
@@ -100,12 +102,11 @@ putVarDecl ident val = do
 	let fenv = fEnv env
 	return Env { vEnv = (M.insert ident newLoc venv), fEnv = fenv }
 
-putFuncDecl :: Ident -> Fun -> Env
-putFuncDecl ident fun = do
-	env <- ask
+putFuncDecl :: Ident -> Fun -> Env -> Env
+putFuncDecl ident fun env =
 	let venv = vEnv env
-	let fenv = fEnv env
-	return Env { vEnv = venv, fEnv = (M.insert ident fun fenv) }
+	    fenv = fEnv env
+	in Env { vEnv = venv, fEnv = (M.insert ident fun fenv) }
 
 
 

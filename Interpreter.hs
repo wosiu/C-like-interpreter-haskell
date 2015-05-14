@@ -124,10 +124,11 @@ transFunction x = do
 	env <- ask
 	case x of
 		NoParamFunc dec_base namespace_stm -> do
-			ident <- transDec_base dec_base
+			let ident = transDec_base dec_base
 			let
-				f [] = local (const (putFuncDecl ident f)) (transNamespace namespace_stm)
+				f [] = local (const (putFuncDecl ident f env)) (transNamespace namespace_stm)
 				--f (p:ps) = throwError $ "Function " ++ x ++ " should not take any parameter"
+			return $ putFuncDecl ident f env
 		ParamFunc dec_base params namespace_stm -> return env -- TODO
 
 

@@ -26,6 +26,10 @@ data Env = Env {
 	}
 	deriving (Show)
 
+
+data Jump = NOTHING | BREAK | CONTINUE | RETURN Val
+
+
 emptyEnv :: Env
 emptyEnv = Env {vEnv = M.empty, fEnv = M.empty}
 

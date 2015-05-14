@@ -20,37 +20,43 @@ transIdent x = case x of
 
 transProgram :: Program -> Semantics Env
 transProgram (Progr compund_contents) = do
-	a <- evalContent compund_contents
+	(env, jump) <- evalContent compund_contents
 	-- debug
-	liftIO $ print a
-	return a
+	liftIO $ print env
+	case jump of
+		NOTHING -> return env
+		_ -> return env --to do error: Unmatched jump statement
 
 
-evalContent :: [Compund_content] -> Semantics Env
+evalContent :: [Compund_content] -> Semantics (Env, Jump)
 evalContent (x:xs) = do
-	env2 <- transCompund_content x
-	local (const env2) (evalContent xs)
+	(env2, jump) <- transCompund_content x
+	case jump of
+		NOTHING -> local (const env2) (evalContent xs)
+		_ -> return (env2, jump)
 
 
 evalContent [] = do
 	env <- ask
-	return env
+	return (env, NOTHING)
 
 
-transCompund_content :: Compund_content -> Semantics Env
+transCompund_content :: Compund_content -> Semantics (Env, Jump)
 transCompund_content x = do
 	env <- ask
 	case x of
 		-- TODO
 		ScompContentStm stm -> do
-			transStm stm
-			return env
-		ScompContentDec dec -> (transDec dec)
+			jump <- transStm stm
+			return (env, jump)
+		ScompContentDec dec -> do
+			env2 <- (transDec dec)
+			return (env2, NOTHING)
 		ScompContentExp exp -> do
 			transExp exp
-			ask
+			return (env, NOTHING)
 		-- TODO
-		ScompContentSpace namespace -> ask
+		ScompContentSpace namespace -> return (env, NOTHING)
 
 
 transNamespace :: Namespace -> Result
@@ -121,14 +127,14 @@ transParam x = case x of
 	FuncParam uninitialized_variable -> failure x
 
 
-transStm :: Stm -> Semantics ()
+transStm :: Stm -> Semantics Jump
 transStm x = do
 	case x of
-		LabelS labeled_stm -> return ()
+		LabelS labeled_stm -> return NOTHING
 		SelS selection_stm -> transSelection_stm selection_stm
-		IterS iter_stm -> return ()
-		JumpS jump_stm -> return ()
-		PrintS print_stm -> return ()
+		IterS iter_stm -> return NOTHING
+		JumpS jump_stm -> return NOTHING
+		PrintS print_stm -> return NOTHING
 
 
 transLabeled_stm :: Labeled_stm -> Result
@@ -137,25 +143,25 @@ transLabeled_stm x = case x of
 	Sdefault compund_content -> failure x
 
 
-transSelection_stm :: Selection_stm -> Semantics ()
+transSelection_stm :: Selection_stm -> Semantics Jump
 transSelection_stm x = do
 	case x of
 		Sif exp compund_content -> do
 			n <- transExp exp
 			if n /= 0 then do
-				_ <- transCompund_content compund_content
-				return ()
+				(_, jump) <- transCompund_content compund_content
+				return jump
 			else
-				return ()
+				return NOTHING
 		SifElse exp compund_content1 compund_content2 -> do
 			n <- transExp exp
 			if n /= 0 then do
-				_ <- transCompund_content compund_content1
-				return ()
+				(_, jump) <- transCompund_content compund_content1
+				return jump
 			else do
-				_ <- transCompund_content compund_content2
-				return ()
-		Sswitch exp compund_content -> return ()
+				(_, jump) <- transCompund_content compund_content2
+				return jump
+		Sswitch exp compund_content -> return NOTHING
 
 
 transIter_stm :: Iter_stm -> Result
@@ -170,11 +176,14 @@ transExp_or_empty x = case x of
 	SnonemptyExp exp -> failure x
 
 
-transJump_stm :: Jump_stm -> Result
-transJump_stm x = case x of
-	Scontinue -> failure x
-	Sbreak -> failure x
-	Sreturn exp -> failure x
+transJump_stm :: Jump_stm -> Semantics Jump
+transJump_stm x = do
+	case x of
+		Scontinue -> return CONTINUE
+		Sbreak -> return BREAK
+		Sreturn exp -> do
+			n <- transExp exp
+			return (RETURN n)
 
 
 transPrint_stm :: Print_stm -> Result

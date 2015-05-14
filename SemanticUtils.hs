@@ -74,12 +74,12 @@ mapVarValue ident fun = do
 	return b
 
 
---takeFunction :: Ident -> Semantics Function
---takeFunction ident = do
---	fenv <- asks fEnv
---	let Just fun = M.lookup ident fenv
---	-- TODO ladniejsza obsluga bledu
---	return fun
+takeFunction :: Ident -> Semantics Fun
+takeFunction ident = do
+	fenv <- asks fEnv
+	let Just fun = M.lookup ident fenv
+	-- TODO ladniejsza obsluga bledu
+	return fun
 
 takeValueFromLoc :: Loc -> Semantics Val
 takeValueFromLoc loc = do
@@ -109,6 +109,14 @@ putFuncDecl ident fun env =
 	in Env { vEnv = venv, fEnv = (M.insert ident fun fenv) }
 
 
+resolveFunc :: Ident -> [Int] -> Semantics Val
+resolveFunc ident params = do
+	f <- takeFunction ident
+	-- todo params
+	jump <- f []
+	case jump of
+		RETURN val -> return val
+		_ -> return 0
 
 boolToInt :: Bool -> Int
 boolToInt False = 0

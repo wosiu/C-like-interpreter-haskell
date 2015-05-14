@@ -289,7 +289,7 @@ transExp x = do
 		Epostdec ident -> do
 			a <- mapVarValue ident ((-) 1)
 			return (a + 1)
-		Efunk ident -> return 0
+		Efunk ident -> resolveFunc ident []
 		Efunkpar ident exps -> return 0
 		Earray ident exp -> return 0
 		Evar ident -> takeValueFromIdent ident

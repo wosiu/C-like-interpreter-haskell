@@ -53,26 +53,26 @@ transCompund_content x = do
 		ScompContentExp exp -> do
 			transExp exp
 			return (env, NOTHING)
-		ScompContentSpace namespace -> transNamespace namespace
+		ScompContentSpace namespace -> do
+			jump <- transNamespace namespace
+			return (env, jump)
 
 
-transNamespace :: Namespace -> Semantics (Env, Jump)
+transNamespace :: Namespace -> Semantics Jump
 transNamespace x = do
-	env <- ask
 	case x of
 		BlockSp compund_contents -> do
 			-- ignore environment from nested namespace
 			(_, jump) <- evalContent compund_contents
-			return (env, jump)
-		EmptyBlockSp -> return (env, NOTHING)
+			return jump
+		EmptyBlockSp -> return NOTHING
 
 
 transDec :: Dec -> Semantics Env
 transDec x = do
 	case x of
-		VariableDec variable -> (transVariable variable)
-		FuncDec function -> return emptyEnv
-
+		VariableDec variable -> transVariable variable
+		FuncDec function -> transFunction function
 
 
 transType_specifier :: Type_specifier -> Result
@@ -80,7 +80,8 @@ transType_specifier x = case x of
 	Tbool -> failure x
 	Tint -> failure x
 
--- todo return tuple with type
+
+-- todo ? maybe return tuple with type
 transDec_base :: Dec_base -> Ident
 transDec_base x = case x of
 	DecBase type_specifier id -> id
@@ -118,10 +119,16 @@ transInitializer x = do
 		InitExpr exp -> transExp exp
 
 
-transFunction :: Function -> Result
-transFunction x = case x of
-	NoParamFunc dec_base namespace_stm -> failure x
-	ParamFunc dec_base params namespace_stm -> failure x
+transFunction :: Function ->Semantics Env
+transFunction x = do
+	env <- ask
+	case x of
+		NoParamFunc dec_base namespace_stm -> do
+			ident <- transDec_base dec_base
+			let
+				f [] = local (const (putFuncDecl ident f)) (transNamespace namespace_stm)
+				--f (p:ps) = throwError $ "Function " ++ x ++ " should not take any parameter"
+		ParamFunc dec_base params namespace_stm -> return env -- TODO
 
 
 transParam :: Param -> Result
@@ -136,7 +143,8 @@ transStm x = do
 		SelS selection_stm -> transSelection_stm selection_stm
 		IterS iter_stm -> transIter_stm iter_stm
 		JumpS jump_stm -> transJump_stm jump_stm
-		PrintS print_stm -> return NOTHING
+		PrintS print_stm -> transPrint_stm print_stm
+
 
 
 transLabeled_stm :: Labeled_stm -> Result
@@ -209,9 +217,13 @@ transJump_stm x = do
 			return (RETURN n)
 
 
-transPrint_stm :: Print_stm -> Result
-transPrint_stm x = case x of
-	SPrint exp -> failure x
+transPrint_stm :: Print_stm -> Semantics Jump
+transPrint_stm x = do
+	case x of
+		SPrint exp -> do
+			a <- transExp exp
+			printValue a
+			return NOTHING
 
 
 _transPairExp :: Exp -> Exp -> Semantics (Val, Val)

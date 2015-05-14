@@ -7,14 +7,17 @@ import Data.Map as M
 import Data.Maybe
 import Control.Monad.Reader
 import Control.Monad.State
+--import Control.Monad.ExceptT
 
 
--- TODO dodac ErrorT do obslugi bledow
 type Semantics = ReaderT Env (StateT St IO)
+--type Semantics = ReaderT Env (StateT St (ExceptT String IO))
+
 
 type Loc = Int -- lokacja
 type VEnv = M.Map Ident Loc -- środowisko zmiennych
-type FEnv = M.Map Ident Function -- środowisko funkcji
+type Fun = [FuncParam] -> Semantics Jump
+type FEnv = M.Map Ident Fun -- środowisko funkcji
 
 -- bool represented as Int
 type Val = Int
@@ -96,6 +99,15 @@ putVarDecl ident val = do
 	let venv = vEnv env
 	let fenv = fEnv env
 	return Env { vEnv = (M.insert ident newLoc venv), fEnv = fenv }
+
+putFuncDecl :: Ident -> Fun -> Env
+putFuncDecl ident fun = do
+	env <- ask
+	let venv = vEnv env
+	let fenv = fEnv env
+	return Env { vEnv = venv, fEnv = (M.insert ident fun fenv) }
+
+
 
 boolToInt :: Bool -> Int
 boolToInt False = 0

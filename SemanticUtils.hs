@@ -15,14 +15,15 @@ type Semantics = ReaderT Env (StateT St IO)
 
 
 type Loc = Int -- lokacja
-type VEnv = M.Map Ident Loc -- środowisko zmiennych
 -- todo param type
-type Fun = [Int] -> Semantics Jump
-type FEnv = M.Map Ident Fun -- środowisko funkcji
+type VEnv = M.Map Ident Loc -- środowisko zmiennych
+
+type FuncCall = [Val] -> Semantics Jump
+type FEnv = M.Map Ident FuncCall -- środowisko funkcji
 
 -- bool represented as Int
 type Val = Int
-type St	= M.Map Loc Val	-- stan
+type St	= M.Map Loc Val -- stan
 
 data Env = Env {
 		vEnv :: VEnv,
@@ -74,7 +75,7 @@ mapVarValue ident fun = do
 	return b
 
 
-takeFunction :: Ident -> Semantics Fun
+takeFunction :: Ident -> Semantics FuncHandler
 takeFunction ident = do
 	fenv <- asks fEnv
 	let Just fun = M.lookup ident fenv
@@ -102,12 +103,26 @@ putVarDecl ident val = do
 	let fenv = fEnv env
 	return Env { vEnv = (M.insert ident newLoc venv), fEnv = fenv }
 
-putFuncDecl :: Ident -> Fun -> Env -> Env
-putFuncDecl ident fun env =
-	let venv = vEnv env
-	    fenv = fEnv env
-	in Env { vEnv = venv, fEnv = (M.insert ident fun fenv) }
 
+putFuncDecl :: Ident -> [Ident] -> a -> Semantics Env
+putFuncDecl ident params fun env = do
+	env <- ask
+	let venv = vEnv env
+		fenv = fEnv env
+		env2 = Env { vEnv = venv, fEnv = (M.insert ident g fenv) }
+		where
+			-- g :: [Val] -> Semantics Jump
+			g = \args -> do
+				-- todo implement putArgs for all params
+				env3 <- local (const env2) (putVarDecl (head params) (head args))
+				local (const env3) fun
+	return env2
+
+
+putFuncDecl :: Ident -> [Ident] -> func -> Semantics Env
+				f [] = local (const (putFuncDecl ident f env)) (transNamespace namespace_stm)
+				--f (p:ps) = throwError $ "Function " ++ x ++ " should not take any parameter"
+			return $ putFuncDecl ident f env
 
 resolveFunc :: Ident -> [Int] -> Semantics Val
 resolveFunc ident params = do

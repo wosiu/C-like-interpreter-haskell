@@ -124,18 +124,18 @@ transFunction x = do
 	env <- ask
 	case x of
 		NoParamFunc dec_base namespace_stm -> do
-			let ident = transDec_base dec_base
-			let
-				f [] = local (const (putFuncDecl ident f env)) (transNamespace namespace_stm)
-				--f (p:ps) = throwError $ "Function " ++ x ++ " should not take any parameter"
-			return $ putFuncDecl ident f env
-		ParamFunc dec_base params namespace_stm -> return env -- TODO
+			let funIdent = transDec_base dec_base
+			putFuncDecl funIdent [] (transNamespace namespace_stm)
+		ParamFunc dec_base params namespace_stm -> do
+			let funIdent = transDec_base dec_base
+			let argIdents = map transParam params
+			putFuncDecl funIdent argIdents (transNamespace namespace_stm)
 
 
-transParam :: Param -> Result
+transParam :: Param -> Ident
 transParam x = case x of
-	FuncParam uninitialized_variable -> failure x
-
+	FuncParam (UninitSimpleTypeDec dec_base) -> transDec_base dec_base
+	-- todo throw error
 
 transStm :: Stm -> Semantics Jump
 transStm x = do
@@ -290,7 +290,9 @@ transExp x = do
 			a <- mapVarValue ident ((-) 1)
 			return (a + 1)
 		Efunk ident -> resolveFunc ident []
-		Efunkpar ident exps -> return 0
+		Efunkpar ident exps -> do
+			args <- mapM transExp exps
+			resolveFunc ident args
 		Earray ident exp -> return 0
 		Evar ident -> takeValueFromIdent ident
 		Econst constant -> return $ transConstant constant

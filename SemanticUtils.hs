@@ -23,7 +23,7 @@ type FEnv = M.Map Ident FuncCall -- środowisko funkcji
 
 -- bool represented as Int
 type Val = Int
-type St	= M.Map Loc Val -- stan
+type St = M.Map Loc Val -- stan
 
 data Env = Env {
 		vEnv :: VEnv,
@@ -75,7 +75,7 @@ mapVarValue ident fun = do
 	return b
 
 
-takeFunction :: Ident -> Semantics FuncHandler
+takeFunction :: Ident -> Semantics FuncCall
 takeFunction ident = do
 	fenv <- asks fEnv
 	let Just fun = M.lookup ident fenv
@@ -103,36 +103,39 @@ putVarDecl ident val = do
 	let fenv = fEnv env
 	return Env { vEnv = (M.insert ident newLoc venv), fEnv = fenv }
 
+putMultiVarDecl :: [Ident] -> [Val] -> Semantics Env
+putMultiVarDecl (ident:idents) (val:vals) = do
+	env <- putVarDecl ident val
+	local (const env) (putMultiVarDecl idents vals)
 
-putFuncDecl :: Ident -> [Ident] -> a -> Semantics Env
-putFuncDecl ident params fun env = do
+-- todo
+--putMultiVarDecl [] (x:xs) = do
+--	throw eeror
+
+putMultiVarDecl [] [] = ask
+
+putFuncDecl :: Ident -> [Ident] -> (Semantics Jump) -> Semantics Env
+putFuncDecl ident params fun = do
 	env <- ask
 	let venv = vEnv env
-		fenv = fEnv env
-		env2 = Env { vEnv = venv, fEnv = (M.insert ident g fenv) }
+	let fenv = fEnv env
+	let env2 = Env { vEnv = venv, fEnv = (M.insert ident g fenv) }
 		where
-			-- g :: [Val] -> Semantics Jump
+			g :: [Val] -> Semantics Jump
 			g = \args -> do
-				-- todo implement putArgs for all params
-				env3 <- local (const env2) (putVarDecl (head params) (head args))
+				env3 <- local (const env2) (putMultiVarDecl params args)
 				local (const env3) fun
 	return env2
 
 
-putFuncDecl :: Ident -> [Ident] -> func -> Semantics Env
-				f [] = local (const (putFuncDecl ident f env)) (transNamespace namespace_stm)
-				--f (p:ps) = throwError $ "Function " ++ x ++ " should not take any parameter"
-			return $ putFuncDecl ident f env
-
-resolveFunc :: Ident -> [Int] -> Semantics Val
-resolveFunc ident params = do
+resolveFunc :: Ident -> [Val] -> Semantics Val
+resolveFunc ident args = do
 	f <- takeFunction ident
-	-- todo params
-	jump <- f []
+	jump <- f args
 	case jump of
 		RETURN val -> return val
 		_ -> return 0
 
 boolToInt :: Bool -> Int
 boolToInt False = 0
-boolToInt True	= 1
+boolToInt True = 1

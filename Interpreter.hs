@@ -3,19 +3,19 @@ module Interpreter where
 import Control.Monad
 import Control.Monad.Reader
 import Control.Monad.State
+import Control.Monad.Error
 
 import Absdeklaracja
-import ErrM
 import SemanticUtils
 
-type Result = Err String
+--type Result = Err String
 
-failure :: Show a => a -> Result
-failure x = Bad $ "Undefined case: " ++ show x
+--failure :: Show a => a -> Result
+--failure x = Bad $ "Undefined case: " ++ show x
 
-transIdent :: Ident -> Result
-transIdent x = case x of
-	Ident str -> failure x
+--transIdent :: Ident -> Result
+--transIdent x = case x of
+--	Ident str -> failure x
 
 
 transProgram :: Program -> Semantics Env
@@ -25,7 +25,7 @@ transProgram (Progr compund_contents) = do
 	printValue env
 	case jump of
 		NOTHING -> return env
-		_ -> return env --to do error: Unmatched jump statement
+		_ -> throwError $ (show jump) ++ " on program exit - jump statement without proper surrounding statement"
 
 
 evalContent :: [Compund_content] -> Semantics (Env, Jump)
@@ -75,10 +75,10 @@ transDec x = do
 		FuncDec function -> transFunction function
 
 
-transType_specifier :: Type_specifier -> Result
-transType_specifier x = case x of
-	Tbool -> failure x
-	Tint -> failure x
+--transType_specifier :: Type_specifier -> Result
+--transType_specifier x = case x of
+--	Tbool -> failure x
+--	Tint -> failure x
 
 
 -- todo ? maybe return tuple with type
@@ -128,14 +128,16 @@ transFunction x = do
 			putFuncDecl funIdent [] (transNamespace namespace_stm)
 		ParamFunc dec_base params namespace_stm -> do
 			let funIdent = transDec_base dec_base
-			let argIdents = map transParam params
+			argIdents <- mapM transParam params
 			putFuncDecl funIdent argIdents (transNamespace namespace_stm)
 
 
-transParam :: Param -> Ident
-transParam x = case x of
-	FuncParam (UninitSimpleTypeDec dec_base) -> transDec_base dec_base
-	-- todo throw error
+transParam :: Param -> Semantics Ident
+transParam x = do
+	case x of
+		FuncParam (UninitSimpleTypeDec dec_base) -> return $ transDec_base dec_base
+		_ -> throwError $ "Wrong declaration of parameter"
+
 
 transStm :: Stm -> Semantics Jump
 transStm x = do
@@ -148,10 +150,10 @@ transStm x = do
 
 
 
-transLabeled_stm :: Labeled_stm -> Result
-transLabeled_stm x = case x of
-	Scase constant_expression compund_content -> failure x
-	Sdefault compund_content -> failure x
+--transLabeled_stm :: Labeled_stm -> Result
+--transLabeled_stm x = case x of
+--	Scase constant_expression compund_content -> failure x
+--	Sdefault compund_content -> failure x
 
 
 transSelection_stm :: Selection_stm -> Semantics Jump
@@ -277,7 +279,8 @@ transExp x = do
 			return $ a * b
 		Ediv exp1 exp2 -> do
 			(a, b) <- _transPairExp exp1 exp2
-			return $ div a b
+			if b == 0 then throwError "Division by zero"
+			else return $ div a b
 		Epreinc ident -> mapVarValue ident ((+) 1)
 		Epredec ident -> mapVarValue ident ((-) 1)
 		Epreop unary_operator exp -> do
@@ -310,9 +313,9 @@ transCBool x = case x of
 	BFalse -> 0
 
 
-transConstant_expression :: Constant_expression -> Result
-transConstant_expression x = case x of
-	Especial exp -> failure x
+--transConstant_expression :: Constant_expression -> Result
+--transConstant_expression x = case x of
+--	Especial exp -> failure x
 
 
 transUnary_operator :: Unary_operator -> Val -> Semantics Val
@@ -329,6 +332,8 @@ transAssignment_op x ident val = do
 			changeVarValue ident val
 			return val
 		AssignMul -> mapVarValue ident ((*) val)
-		AssignDiv -> mapVarValue ident (flip div val)
+		AssignDiv -> do
+			if val == 0 then throwError "Division by zero"
+			else mapVarValue ident (flip div val)
 		AssignAdd -> mapVarValue ident ((+) val)
 		AssignSub -> mapVarValue ident (flip (-) val )

@@ -2,6 +2,7 @@ module Main where
 
 import Control.Monad.Reader
 import Control.Monad.State
+import Control.Monad.Error
 import System.IO
 
 import Lexdeklaracja
@@ -16,5 +17,7 @@ import ErrM
 main = do
 	input <- hGetContents stdin
 	let Ok e = pProgram (myLexer input)
-	out <- execStateT (runReaderT (transProgram e) emptyEnv) initialSt
-	print out
+	out <- runErrorT (execStateT (runReaderT (transProgram e) emptyEnv) initialSt)
+	case out of
+		Left err -> hPutStr stderr $ "Error: " ++ err
+		Right state -> print $ "State debug: " ++ show state

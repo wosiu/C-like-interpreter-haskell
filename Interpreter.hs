@@ -27,17 +27,23 @@ main = do
 		runErrorT (execStateT (runReaderT (runShell "C-wos>>> " "") emptyEnv) initialSt)
 		putStrLn $ "Bye!"
 	else do
+		-- read from file
 		handle <- openFile (head args) ReadMode
 		input <- hGetContents handle
 		case pProgram (myLexer input) of
 			Ok program -> do
-				out <- runErrorT (execStateT (runReaderT (transProgram program) emptyEnv) initialSt)
+				out <- runErrorT (execStateT (runReaderT (runProgram program) emptyEnv) initialSt)
 				case out of
 					Left err -> hPutStr stderr $ "Error: " ++ err
 					--Right state -> print $ "State debug: " ++ show state
 					Right state -> return ()
 			Bad s -> hPutStr stderr $ "Parsing failed: " ++ show s
 
+
+runProgram :: Program -> Semantics Env
+runProgram program = do
+	-- todo type checking
+	transProgram program
 
 
 runShell :: String -> String -> Semantics Env
@@ -61,7 +67,7 @@ runShell prompt instPart = do
 					Ok program -> do
 						catchError
 							(do
-								env2 <- transProgram program
+								env2 <- runProgram program
 								local (const env2) (runShell "C-wos>>> " "")
 							)
 							(\e -> do

@@ -3,77 +3,85 @@ int b = 3;
 a = (3 + 2) * 2 / 2;
 bool c = true;
 bool d = c && (2 < b);
-int e; 
-bool e = !c; // it is allowed to cover variable in the same scope
-int f = -b + (-1);
+int e = -b + (-1);
 
+print(a);
+print(b);
+print(c);
+print(d);
+print(e);
 
+////////////////////
 int i = 0;
 int g = 0;
-for(i = 1; i <= 4; i++) {
+for(; i <= 4; ) {
 	g += 2;
+	i++;
 }
 
-for(i = 1; i <= 4; i++) 
+for( i = 0; i <= 4; ++i) 
 	g -= 2;
 
-int i = 1;
-int a = 0;
+print(g);
+
+///////////////////
+
+i = 1;
+a = 0;
 while( i++ < 5 ) a += 2;
 
-
-int a = 0;
-
+//////////////////
+a = 0;
 {
-	a = 2;
-	int i;
-}
-
-
-int a = 1;
-int f() {
-	a = 2;
+	a = 1;
 }
 print(a);
 
 
-int a = 1;
-int f() { a = 2; return 3; }
-int b = f();
+/////////////////
+int f1() {
+	a = 2;
+}
+print(a);
+f1();
+print(a);
 
 
-int a = 1;    
-int f() { int a = 2; print(a); f(); }
-f();
+////////////////
+int f2() { a = 3; return a + 1; }
+b = f2();
+print(a);
+print(b);
 
 
-int a = 10000;
+/*
+a = 10000;
 int f(int a, int b) { a = 0; return a + b; }
 print(f(1,1));
 print(a);
+*/
 
-
-
+///////////////
 int z = 0;
-int f() {
+int h() {
 	print(z);
 	int g() {
 		z++;
-	        f();
+	        h();
 	}
 	if ( z < 3 ) {
 		g();
 	}
 }
-f();
+h();
 
 
 // Function by default return 0 if return statement not presented
 int g() {}
 if (g() == 0) 
-	print(1)
+	print(1);
 else
-	print(0)
+	print(0);
 
 
 

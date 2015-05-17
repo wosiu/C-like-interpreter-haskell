@@ -22,7 +22,7 @@ transProgram :: Program -> Semantics Env
 transProgram (Progr compund_contents) = do
 	(env, jump) <- evalContent compund_contents
 	-- debug
-	printValue env
+	-- printValue env
 	case jump of
 		NOTHING -> return env
 		_ -> throwError $ (show jump) ++ " on program exit - jump statement without proper surrounding statement"

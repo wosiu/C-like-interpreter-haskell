@@ -47,7 +47,7 @@ class Printer p where
 	printValue :: Show a => a -> p ()
 
 instance Printer Semantics where
-	printString str = liftIO $ putStr str
+	printString str = liftIO $ putStrLn str
 	printValue i = liftIO $ print i
 
 -- debug helper

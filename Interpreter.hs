@@ -43,6 +43,7 @@ main = do
 runProgram :: Program -> Semantics Env
 runProgram program = do
 	-- todo type checking
+	-- 
 	transProgram program
 
 

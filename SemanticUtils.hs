@@ -10,7 +10,6 @@ import Control.Monad.State
 import Control.Monad.Error
 
 type Semantics = ReaderT Env (StateT St (ErrorT String IO))
---type Semantics = ReaderT Env (StateT St IO)
 
 type Loc = Int -- lokacja
 -- todo param type

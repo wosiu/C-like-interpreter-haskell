@@ -174,7 +174,40 @@ transSelection_stm x = do
 			else do
 				(_, jump) <- transCompund_content compund_content2
 				return jump
-		Sswitch exp compund_content -> return NOTHING
+		SswitchOne exp switch_content  -> do
+			n <- transExp exp
+			evalSwitchContents n [switch_content]
+		SswitchMany exp switch_contents  -> do
+			n <- transExp exp
+			evalSwitchContents n switch_contents
+
+
+evalSwitchContents :: Val -> [Switch_content] -> Semantics Jump
+evalSwitchContents predicat (x:xs) = do
+	jump <- transSwitch_content predicat x
+	case jump of
+		BREAK -> return NOTHING
+		NOTHING -> evalSwitchContents predicat xs
+		_ -> return jump
+
+evalSwitchContents _ [] = return NOTHING
+
+
+transSwitch_content :: Val -> Switch_content -> Semantics Jump
+transSwitch_content predicat x = do
+	case x of
+		SswitchCase exp compund_contents -> do
+			n <- transExp exp
+			if n == predicat then do
+				(_, jump) <- evalContent compund_contents
+				return jump
+			else
+				return NOTHING
+		SswitchDef compund_contents  -> do
+			(_, jump) <- evalContent compund_contents
+			case jump of
+				NOTHING -> return BREAK
+				_ -> return jump
 
 
 transIter_stm :: Iter_stm -> Semantics Jump

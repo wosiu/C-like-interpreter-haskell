@@ -57,10 +57,11 @@ PrintS.   Stm ::= Print_stm ;
 Sif.      Selection_stm ::= "if" "(" Exp ")" Compund_content ;
 SifElse.  Selection_stm ::= "if" "(" Exp ")" Compund_content "else" Compund_content ;
 
--- to improve
+
 SswitchOne.   Selection_stm ::= "switch" "(" Exp ")" Switch_content ;
 SswitchMany.  Selection_stm ::= "switch" "(" Exp ")" "{" [Switch_content] "}";
-SswitchCase.  Switch_content ::= "case" Constant_expression ":" [Compund_content] ;
+
+SswitchCase.  Switch_content ::= "case" Exp ":" [Compund_content] ;
 SswitchDef.   Switch_content ::= "default" ":" [Compund_content] ;
 
 (:[]).   [Switch_content] ::= Switch_content ;

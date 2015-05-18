@@ -34,10 +34,10 @@ main = do
 			Ok program -> do
 				out <- runErrorT (execStateT (runReaderT (runProgram program) emptyEnv) initialSt)
 				case out of
-					Left err -> hPutStr stderr $ "Error: " ++ err
+					Left err -> hPutStrLn stderr $ "Error: " ++ err
 					--Right state -> print $ "State debug: " ++ show state
 					Right state -> return ()
-			Bad s -> hPutStr stderr $ "Parsing failed: " ++ show s
+			Bad s -> hPutStrLn stderr $ "Parsing failed: " ++ show s
 
 
 runProgram :: Program -> Semantics Env

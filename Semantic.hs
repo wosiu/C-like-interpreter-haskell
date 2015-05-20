@@ -109,9 +109,7 @@ transFunction x = do
 		ParamFunc dec_base params namespace_stm -> do
 			let (DecBase type_specifier ident) = dec_base
 			argIdents <- mapM transParam params
-			case type_specifier of
-				Tbool -> putFuncDecl ident argIdents (transNamespace namespace_stm)
-				Tint -> putFuncDecl ident argIdents (transNamespace namespace_stm)
+			putFuncDecl ident argIdents (transNamespace namespace_stm)
 
 
 transParam :: Param -> Semantics Ident

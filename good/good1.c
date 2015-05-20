@@ -94,5 +94,12 @@ switch (a) {
 	default: print(4);
 }
 
+////////////
+string str1 = "asd";
+string str2;
+str2 = str1 + "a";
+print(str1 == str2);
+print(str1);
+
 
 

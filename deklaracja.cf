@@ -24,6 +24,7 @@ FuncDec.     Dec ::= Function ;
 
 Tbool.        Type_specifier ::= "bool";
 Tint.         Type_specifier ::= "int";
+Tstring.      Type_specifier ::= "string";
 
 DecBase.  Dec_base ::= Type_specifier Ident;
 
@@ -113,7 +114,8 @@ Econst.      Exp17 ::= Constant;
 
 
 Ebool.         Constant ::= CBool;
-Eint.          Constant ::= Integer;  
+Eint.          Constant ::= Integer;
+Estring.       Constant ::= String;
 
 BTrue.	CBool ::= "true";
 BFalse.	CBool ::= "false";

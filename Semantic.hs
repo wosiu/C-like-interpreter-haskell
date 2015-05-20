@@ -81,6 +81,7 @@ transUninitialized_variable x = do
 			case type_specifier of
 				Tbool -> putVarDecl ident $ BOOL False
 				Tint -> putVarDecl ident $ INT 0
+				Tstring -> putVarDecl ident $ STRING ""
 		UninitArr dec_base constant_expression -> return emptyEnv
 
 
@@ -90,9 +91,7 @@ transInitialized_variable x = do
 		InitSimpleTypeDec dec_base initializer -> do
 			val <- transInitializer initializer
 			let (DecBase type_specifier ident) = dec_base
-			case type_specifier of
-				Tbool -> putVarDecl ident $ val
-				Tint -> putVarDecl ident $ val
+			putVarDecl ident $ val
 		InitArr dec_base initializers  -> return emptyEnv
 
 
@@ -241,6 +240,7 @@ transPrint_stm (SPrint exp) = do
 	case val of
 		INT a -> printValue a
 		BOOL a -> printValue a
+		STRING a -> printString a
 	return NOTHING
 
 
@@ -297,8 +297,11 @@ transExp x = do
 			(a, b) <- _transPairExp exp1 exp2
 			return $ BOOL $ a >= b
 		Eplus exp1 exp2 -> do
- 			(a, b) <- _transPairIntExp exp1 exp2
- 			return $ INT $ a + b
+			pair <- _transPairExp exp1 exp2
+			case pair of
+				(INT a, INT b) -> return $ INT $ a + b
+				(STRING a, STRING b) -> return $ STRING $ a ++ b
+				_ -> throwError "Cannot use + operator on given types"
 		Eminus exp1 exp2 -> do
 			(a, b) <- _transPairIntExp exp1 exp2
 			return $ INT $ a - b
@@ -333,6 +336,7 @@ transConstant :: Constant -> Val
 transConstant x = case x of
 	Ebool cbool -> transCBool cbool
 	Eint n -> INT $ fromInteger n
+	Estring str -> STRING str
 
 
 transCBool :: CBool -> Val

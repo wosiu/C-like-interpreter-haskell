@@ -19,7 +19,7 @@ type FuncCall = [Val] -> Semantics Jump
 type FEnv = M.Map Ident FuncCall -- środowisko funkcji
 
 -- bool represented as Int
-data Val = INT Int | BOOL Bool deriving (Show, Eq, Ord)
+data Val = INT Int | BOOL Bool | STRING String deriving (Show, Eq, Ord)
 type St = M.Map Loc Val -- stan
 
 data Env = Env {
@@ -67,6 +67,7 @@ changeVarValue ident newVal = do
 	case (val, newVal) of
 		(INT old, INT new) -> modify (M.insert loc newVal)
 		(BOOL old, BOOL new) -> modify (M.insert loc newVal)
+		(STRING old, STRING new) -> modify (M.insert loc newVal)
 		_ -> throwError $ "Variable " ++ show ident ++ " has different type"
 
 -- change value of variable under ident using given function and return new value

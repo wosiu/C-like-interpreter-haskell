@@ -8,15 +8,6 @@ import Control.Monad.Error
 import Absdeklaracja
 import SemanticUtils
 
---type Result = Err String
-
---failure :: Show a => a -> Result
---failure x = Bad $ "Undefined case: " ++ show x
-
---transIdent :: Ident -> Result
---transIdent x = case x of
---	Ident str -> failure x
-
 
 transProgram :: Program -> Semantics Env
 transProgram (Progr compund_contents) = do
@@ -75,18 +66,6 @@ transDec x = do
 		FuncDec function -> transFunction function
 
 
---transType_specifier :: Type_specifier -> Result
---transType_specifier x = case x of
---	Tbool -> failure x
---	Tint -> failure x
-
-
--- todo ? maybe return tuple with type
-transDec_base :: Dec_base -> Ident
-transDec_base x = case x of
-	DecBase type_specifier id -> id
-
-
 transVariable :: Variable -> Semantics Env
 transVariable x = do
 	case x of
@@ -98,8 +77,10 @@ transUninitialized_variable :: Uninitialized_variable -> Semantics Env
 transUninitialized_variable x = do
 	case x of
 		UninitSimpleTypeDec dec_base -> do
-			let ident = transDec_base dec_base
-			putVarDecl ident 0
+			let (DecBase type_specifier ident) = dec_base
+			case type_specifier of
+				Tbool -> putVarDecl ident $ BOOL False
+				Tint -> putVarDecl ident $ INT 0
 		UninitArr dec_base constant_expression -> return emptyEnv
 
 
@@ -108,9 +89,11 @@ transInitialized_variable x = do
 	case x of
 		InitSimpleTypeDec dec_base initializer -> do
 			val <- transInitializer initializer
-			let ident = transDec_base dec_base
-			putVarDecl ident val
-		InitArr dec_base initializers -> return emptyEnv
+			let (DecBase type_specifier ident) = dec_base
+			case type_specifier of
+				Tbool -> putVarDecl ident $ val
+				Tint -> putVarDecl ident $ val
+		InitArr dec_base initializers  -> return emptyEnv
 
 
 transInitializer :: Initializer -> Semantics Val
@@ -123,19 +106,21 @@ transFunction :: Function ->Semantics Env
 transFunction x = do
 	env <- ask
 	case x of
-		NoParamFunc dec_base namespace_stm -> do
-			let funIdent = transDec_base dec_base
-			putFuncDecl funIdent [] (transNamespace namespace_stm)
+		NoParamFunc dec_base namespace_stm -> transFunction $ ParamFunc dec_base [] namespace_stm
 		ParamFunc dec_base params namespace_stm -> do
-			let funIdent = transDec_base dec_base
+			let (DecBase type_specifier ident) = dec_base
 			argIdents <- mapM transParam params
-			putFuncDecl funIdent argIdents (transNamespace namespace_stm)
+			case type_specifier of
+				Tbool -> putFuncDecl ident argIdents (transNamespace namespace_stm)
+				Tint -> putFuncDecl ident argIdents (transNamespace namespace_stm)
 
 
 transParam :: Param -> Semantics Ident
 transParam x = do
 	case x of
-		FuncParam (UninitSimpleTypeDec dec_base) -> return $ transDec_base dec_base
+		FuncParam (UninitSimpleTypeDec dec_base) -> do
+			let (DecBase type_specifier ident) = dec_base
+			return ident
 		_ -> throwError $ "Wrong declaration of parameter"
 
 
@@ -149,31 +134,27 @@ transStm x = do
 		PrintS print_stm -> transPrint_stm print_stm
 
 
-
---transLabeled_stm :: Labeled_stm -> Result
---transLabeled_stm x = case x of
---	Scase constant_expression compund_content -> failure x
---	Sdefault compund_content -> failure x
-
-
 transSelection_stm :: Selection_stm -> Semantics Jump
 transSelection_stm x = do
 	case x of
 		Sif exp compund_content -> do
 			n <- transExp exp
-			if n /= 0 then do
-				(_, jump) <- transCompund_content compund_content
-				return jump
-			else
-				return NOTHING
+			case n of
+				BOOL True -> do
+					(_, jump) <- transCompund_content compund_content
+					return jump
+				BOOL False -> return NOTHING
+				_ -> throwError "Non-logical condition in if statement"
 		SifElse exp compund_content1 compund_content2 -> do
 			n <- transExp exp
-			if n /= 0 then do
-				(_, jump) <- transCompund_content compund_content1
-				return jump
-			else do
-				(_, jump) <- transCompund_content compund_content2
-				return jump
+			case n of
+				BOOL True -> do
+					(_, jump) <- transCompund_content compund_content1
+					return jump
+				BOOL False -> do
+					(_, jump) <- transCompund_content compund_content2
+					return jump
+				_ -> throwError "Non-logical condition in if statement"
 		SswitchOne exp switch_content  -> do
 			n <- transExp exp
 			evalSwitchContents n [switch_content]
@@ -222,24 +203,25 @@ transIter_stm x = do
 _forloop :: Exp_or_empty -> Exp_or_empty -> Compund_content -> Semantics Jump
 _forloop stopCond postExp compund_content = do
 	stopExp <- transExp_or_empty stopCond
-	if stopExp == 0 then return NOTHING
-	else do
-		-- ignore environment changes made in for scope
-		(_, jump) <- transCompund_content compund_content
-		case jump of
-			-- quit from loop
-			BREAK -> return NOTHING
-			RETURN v -> return (RETURN v)
-			-- continue loop
-			_ -> do
-				_ <- transExp_or_empty postExp
-				_forloop stopCond postExp compund_content
-
+	case stopExp of
+		(BOOL False) -> return NOTHING
+		(BOOL True) -> do
+			-- ignore environment changes made in for scope
+			(_, jump) <- transCompund_content compund_content
+			case jump of
+				-- quit from loop
+				BREAK -> return NOTHING
+				RETURN v -> return (RETURN v)
+				-- continue loop
+				_ -> do
+					_ <- transExp_or_empty postExp
+					_forloop stopCond postExp compund_content
+		_ -> throwError "Stop condition in for loop must be bool type"
 
 transExp_or_empty :: Exp_or_empty -> Semantics Val
 transExp_or_empty x = do
 	case x of
-		SemptyExp -> return 1
+		SemptyExp -> return $ BOOL True
 		SnonemptyExp exp -> transExp exp
 
 
@@ -254,12 +236,12 @@ transJump_stm x = do
 
 
 transPrint_stm :: Print_stm -> Semantics Jump
-transPrint_stm x = do
-	case x of
-		SPrint exp -> do
-			a <- transExp exp
-			printValue a
-			return NOTHING
+transPrint_stm (SPrint exp) = do
+	val <- transExp exp
+	case val of
+		INT a -> printValue a
+		BOOL a -> printValue a
+	return NOTHING
 
 
 _transPairExp :: Exp -> Exp -> Semantics (Val, Val)
@@ -268,6 +250,19 @@ _transPairExp e1 e2 = do
 	val2 <- transExp e2
 	return (val1, val2)
 
+_transPairBoolExp :: Exp -> Exp -> Semantics (Bool, Bool)
+_transPairBoolExp e1 e2 = do
+	pair <- _transPairExp e1 e2
+	case pair of
+		(BOOL a, BOOL b) -> return (a,b)
+		_ -> throwError "Bad type for boolean operation"
+
+_transPairIntExp :: Exp -> Exp -> Semantics (Int, Int)
+_transPairIntExp e1 e2 = do
+	pair <- _transPairExp e1 e2
+	case pair of
+		(INT a, INT b) -> return (a,b)
+		_ -> throwError "Bad type for numeric operation"
 
 transExp :: Exp -> Semantics Val
 transExp x = do
@@ -278,58 +273,58 @@ transExp x = do
 			val <- transExp exp
 			transAssignment_op assignment_op ident val
 		Elor exp1 exp2 -> do
-			(a, b) <- _transPairExp exp1 exp2
-			return $ boolToInt (a /= 0 || b /= 0)
+			(a, b) <- _transPairBoolExp exp1 exp2
+			return $ BOOL (a || b)
 		Eland exp1 exp2 -> do
-			(a, b) <- _transPairExp exp1 exp2
-			return $ boolToInt (a /= 0 && b /= 0)
+			(a, b) <- _transPairBoolExp exp1 exp2
+			return $ BOOL (a && b)
 		Eeq exp1 exp2 -> do
 			(a, b) <- _transPairExp exp1 exp2
-			return $ boolToInt (a == b)
+			return $ BOOL $ a == b
 		Eneq exp1 exp2 -> do
-			(a, b) <- _transPairExp exp1 exp2
-			return $ boolToInt (a /= b)
+			BOOL a <- transExp (Eeq exp1 exp2)
+			return $ BOOL $ not a
 		Elthen exp1 exp2 -> do
 			(a, b) <- _transPairExp exp1 exp2
-			return $ boolToInt $ a < b
+			return $ BOOL $ a < b
 		Egrthen exp1 exp2 -> do
-			(a, b) <- _transPairExp exp1 exp2
-			return $ boolToInt $a > b
+			(a, b) <-  _transPairExp exp1 exp2
+			return $ BOOL $ a > b
 		Ele exp1 exp2 -> do
 			(a, b) <- _transPairExp exp1 exp2
-			return $ boolToInt $a <= b
+			return $ BOOL $ a <= b
 		Ege exp1 exp2 -> do
 			(a, b) <- _transPairExp exp1 exp2
-			return $ boolToInt $ a >= b
+			return $ BOOL $ a >= b
 		Eplus exp1 exp2 -> do
- 			(a, b) <- _transPairExp exp1 exp2
- 			return $ a + b
+ 			(a, b) <- _transPairIntExp exp1 exp2
+ 			return $ INT $ a + b
 		Eminus exp1 exp2 -> do
-			(a, b) <- _transPairExp exp1 exp2
-			return $ a - b
+			(a, b) <- _transPairIntExp exp1 exp2
+			return $ INT $ a - b
 		Etimes exp1 exp2 -> do
-			(a, b) <- _transPairExp exp1 exp2
-			return $ a * b
+			(a, b) <- _transPairIntExp exp1 exp2
+			return $ INT $ a * b
 		Ediv exp1 exp2 -> do
-			(a, b) <- _transPairExp exp1 exp2
+			(a, b) <- _transPairIntExp exp1 exp2
 			if b == 0 then throwError "Division by zero"
-			else return $ div a b
-		Epreinc ident -> mapVarValue ident ((+) 1)
-		Epredec ident -> mapVarValue ident ((-) 1)
+			else return $ INT $ div a b
+		Epreinc ident -> mapIntVar ident $ (+) 1
+		Epredec ident -> mapIntVar ident $ (-) 1
 		Epreop unary_operator exp -> do
 			a <- transExp exp
 			transUnary_operator unary_operator a
 		Epostinc ident -> do
-			a <- mapVarValue ident ((+) 1)
-			return (a - 1)
+			(INT a) <- mapIntVar ident $ (+) 1
+			return $ INT (a - 1)
 		Epostdec ident -> do
-			a <- mapVarValue ident ((-) 1)
-			return (a + 1)
+			(INT a) <- mapIntVar ident $ (-) 1
+			return $ INT (a + 1)
 		Efunk ident -> resolveFunc ident []
 		Efunkpar ident exps -> do
 			args <- mapM transExp exps
 			resolveFunc ident args
-		Earray ident exp -> return 0
+		Earray ident exp -> return $ INT 0
 		Evar ident -> takeValueFromIdent ident
 		Econst constant -> return $ transConstant constant
 
@@ -337,13 +332,13 @@ transExp x = do
 transConstant :: Constant -> Val
 transConstant x = case x of
 	Ebool cbool -> transCBool cbool
-	Eint n -> fromInteger n
+	Eint n -> INT $ fromInteger n
 
 
 transCBool :: CBool -> Val
 transCBool x = case x of
-	BTrue -> 1
-	BFalse -> 0
+	BTrue -> BOOL True
+	BFalse -> BOOL False
 
 
 --transConstant_expression :: Constant_expression -> Result
@@ -353,20 +348,30 @@ transCBool x = case x of
 
 transUnary_operator :: Unary_operator -> Val -> Semantics Val
 transUnary_operator x val = case x of
-	Plus -> return val
-	Negative -> return (-val)
-	Logicalneg -> return $ boolToInt $ val == 0
+	Plus -> do
+		case val of
+			(INT a) -> return val
+			_ -> throwError "Plus operation at non-numeric object"
+	Negative -> do
+		case val of
+			(INT a) -> return $ INT $ -a
+			_ -> throwError "Minus operation at non-numeric object"
+	Logicalneg -> do
+		case val of
+			(BOOL a) -> return $ BOOL $ not a
+			_ -> throwError "Negation at non-logical object"
 
 
 transAssignment_op :: Assignment_op -> Ident -> Val -> Semantics Val
 transAssignment_op x ident val = do
-	case x of
-		Assign -> do
+	case (x, val) of
+		(Assign, _) -> do
 			changeVarValue ident val
 			return val
-		AssignMul -> mapVarValue ident ((*) val)
-		AssignDiv -> do
-			if val == 0 then throwError "Division by zero"
-			else mapVarValue ident (flip div val)
-		AssignAdd -> mapVarValue ident ((+) val)
-		AssignSub -> mapVarValue ident (flip (-) val )
+		(AssignMul, INT a) -> mapIntVar ident $ (*) a
+		(AssignDiv, INT a) -> do
+			if a == 0 then throwError "Division by zero"
+			else mapIntVar ident $ flip div a
+		(AssignAdd, INT a) -> mapIntVar ident $ (+) a
+		(AssignSub, INT a) -> mapIntVar ident $ flip (-) a
+		_ -> throwError "Wrong assignment operrator for this type"

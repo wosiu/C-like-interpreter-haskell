@@ -19,7 +19,7 @@ type FuncCall = [Val] -> Semantics Jump
 type FEnv = M.Map Ident FuncCall -- środowisko funkcji
 
 -- bool represented as Int
-type Val = Int
+data Val = INT Int | BOOL Bool deriving (Show, Eq, Ord)
 type St = M.Map Loc Val -- stan
 
 data Env = Env {
@@ -39,7 +39,7 @@ emptyEnv = Env {vEnv = M.empty, fEnv = M.empty}
 
 -- na pozycji 0 zapisany jest numer następnej wolnej lokacji
 initialSt :: St
-initialSt = M.singleton 0 1
+initialSt = M.singleton 0 (INT 1)
 
 class Printer p where
 	printString :: String -> p ()
@@ -60,19 +60,25 @@ takeLocation ident = do
 		Just loc -> return loc
 		Nothing -> throwError $ (show ident) ++ " is undeclared"
 
-
 changeVarValue :: Ident -> Val -> Semantics ()
 changeVarValue ident newVal = do
 	loc <- takeLocation ident
-	modify (M.insert loc newVal)
+	Just val <- gets (M.lookup loc)
+	case (val, newVal) of
+		(INT old, INT new) -> modify (M.insert loc newVal)
+		(BOOL old, BOOL new) -> modify (M.insert loc newVal)
+		_ -> throwError $ "Variable " ++ show ident ++ " has different type"
 
 -- change value of variable under ident using given function and return new value
-mapVarValue :: Ident -> (Val -> Val) -> Semantics Val
-mapVarValue ident fun = do
-	a <- takeValueFromIdent ident
-	let b = fun a
-	changeVarValue ident b
-	return b
+mapIntVar :: Ident -> (Int -> Int) -> Semantics Val
+mapIntVar ident fun = do
+	val <- takeValueFromIdent ident
+	case val of
+		INT a -> do
+			let b = INT $ fun a
+			changeVarValue ident b
+			return b
+		_ -> throwError $ "Variable under ident " ++ show ident ++ " is not integer"
 
 
 takeFunction :: Ident -> Semantics FuncCall
@@ -103,9 +109,9 @@ putVarDecl ident val = do
 	if (M.member ident venv) then
 		throwError $ show ident ++ " - already used in scope"
 	else do
-		Just newLoc <- gets (M.lookup 0)
+		Just (INT newLoc) <- gets (M.lookup 0)
 		modify (M.insert newLoc val)
-		modify (M.insert 0 (newLoc+1))
+		modify (M.insert 0 (INT (newLoc+1)))
 		return Env { vEnv = (M.insert ident newLoc venv), fEnv = fenv }
 
 putMultiVarDecl :: [Ident] -> [Val] -> Semantics Env
@@ -143,8 +149,5 @@ resolveFunc ident args = do
 	jump <- f args
 	case jump of
 		RETURN val -> return val
-		_ -> return 0
-
-boolToInt :: Bool -> Int
-boolToInt False = 0
-boolToInt True = 1
+		-- todo zwracanie w zaleznosci od typu
+		_ -> return (INT 0)

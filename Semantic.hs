@@ -296,9 +296,9 @@ transExp x = do
 	env <- ask
 	case x of
 		--Ecomma exp1 exp2 -> return (emptyEnv, 0)
-		Eassign ident assignment_op exp -> do
+		Eassign lvalue assignment_op exp -> do
 			val <- transExp exp
-			transAssignment_op assignment_op ident val
+			transAssignment_op assignment_op lvalue val
 		Elor exp1 exp2 -> do
 			(a, b) <- _transPairBoolExp exp1 exp2
 			return $ BOOL (a || b)
@@ -339,22 +339,47 @@ transExp x = do
 			(a, b) <- _transPairIntExp exp1 exp2
 			if b == 0 then throwError "Division by zero"
 			else return $ INT $ div a b
-		Epreinc ident -> mapIntVar ident $ (+) 1
-		Epredec ident -> mapIntVar ident $ (-) 1
+		Epreinc lvalue -> mapIntLVal lvalue $ (+) 1
+		Epredec lvalue -> mapIntLVal lvalue $ (-) 1
 		Epreop unary_operator exp -> do
 			a <- transExp exp
 			transUnary_operator unary_operator a
-		Epostinc ident -> do
-			(INT a) <- mapIntVar ident $ (+) 1
+		Epostinc lvalue -> do
+			(INT a) <- mapIntLVal lvalue $ (+) 1
 			return $ INT (a - 1)
-		Epostdec ident -> do
-			(INT a) <- mapIntVar ident $ (-) 1
+		Epostdec lvalue -> do
+			(INT a) <- mapIntLVal lvalue $ (-) 1
 			return $ INT (a + 1)
 		Efunk ident -> resolveFunc ident []
 		Efunkpar ident exps -> do
 			args <- mapM transExp exps
 			resolveFunc ident args
-		Earray ident exp -> do
+		Elval lvalue -> transLValue lvalue
+		Econst constant -> return $ transConstant constant
+
+
+-- change value of variable under ident using given function and return new value
+mapIntLVal :: LValue -> (Int -> Int) -> Semantics Val
+mapIntLVal (LVar ident) fun = mapIntVar ident fun
+mapIntLVal (LArrEl ident exp ) fun = do
+	iVal <- transExp exp
+	val <- takeValueFromIdent ident
+	case (val, iVal) of
+		(ARR arr, INT i) -> do
+			if (i < length arr) && (i >= 0) then do
+				let (INT oldVal) = (arr !! i)
+				let newVal = INT $ fun oldVal
+				let newArr = (take i arr) ++ [newVal] ++ (drop (i+1) arr)
+				changeVarValue ident (ARR newArr)
+				return newVal
+			else throwError $ "Index out of bound"
+		_ -> throwError $ "Bad array call"
+
+transLValue :: LValue -> Semantics Val
+transLValue x = do
+	case x of
+		LVar ident -> takeValueFromIdent ident
+		LArrEl ident exp -> do
 			ival <- transExp exp
 			arr <- takeValueFromIdent ident
 			case (arr, ival) of
@@ -362,8 +387,6 @@ transExp x = do
 					if (i >= 0) && (i < length list) then return $ list !! i
 					else throwError "Index out of bound"
 				_ -> throwError "Incorrect array element call"
-		Evar ident -> takeValueFromIdent ident
-		Econst constant -> return $ transConstant constant
 
 
 transConstant :: Constant -> Val
@@ -395,16 +418,35 @@ transUnary_operator x val = case x of
 			_ -> throwError "Negation at non-logical object"
 
 
-transAssignment_op :: Assignment_op -> Ident -> Val -> Semantics Val
-transAssignment_op x ident val = do
+-- assignment operator for simple types
+transAssignment_op :: Assignment_op -> LValue -> Val -> Semantics Val
+transAssignment_op x lvalue val = do
 	case (x, val) of
 		(Assign, _) -> do
-			changeVarValue ident val
+			changeLVal lvalue val
 			return val
-		(AssignMul, INT a) -> mapIntVar ident $ (*) a
+		(AssignMul, INT a) -> mapIntLVal lvalue $ (*) a
 		(AssignDiv, INT a) -> do
 			if a == 0 then throwError "Division by zero"
-			else mapIntVar ident $ flip div a
-		(AssignAdd, INT a) -> mapIntVar ident $ (+) a
-		(AssignSub, INT a) -> mapIntVar ident $ flip (-) a
+			else mapIntLVal lvalue $ flip div a
+		(AssignAdd, INT a) -> mapIntLVal lvalue $ (+) a
+		(AssignSub, INT a) -> mapIntLVal lvalue $ flip (-) a
 		_ -> throwError "Wrong assignment operrator for this type"
+
+
+changeLVal :: LValue -> Val -> Semantics ()
+changeLVal lvalue val = do
+	case lvalue of
+		LVar ident -> changeVarValue ident val
+		LArrEl ident exp -> do
+			iVal <- transExp exp
+			arrVal <- takeValueFromIdent ident
+			case (arrVal, iVal) of
+				(ARR arr, INT i) -> do
+					if (i < length arr) && (i >= 0) then do
+						let oldVal = (arr !! i)
+						_ <- checkTypeCompM (oldVal, val)
+						let newArr = (take i arr) ++ [val] ++ (drop (i+1) arr)
+						changeVarValue ident (ARR newArr)
+					else throwError $ "Index out of bound"
+				_ -> throwError $ "Bad array call"

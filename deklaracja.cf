@@ -84,7 +84,7 @@ SPrint.	  Print_stm ::= "print" "(" Exp2 ")" ";";
 -- EXPRESSIONS
 
 Ecomma.      Exp   ::= Exp "," Exp2;
-Eassign.     Exp2  ::= Ident Assignment_op Exp2;
+Eassign.     Exp2  ::= LValue Assignment_op Exp2;
 
 Elor.        Exp4  ::= Exp4 "||" Exp5;
 Eland.       Exp5  ::= Exp5 "&&" Exp6;
@@ -98,18 +98,17 @@ Eplus.       Exp12 ::= Exp12 "+" Exp13;
 Eminus.      Exp12 ::= Exp12 "-" Exp13;
 Etimes.      Exp13 ::= Exp13 "*" Exp14;
 Ediv.        Exp13 ::= Exp13 "/" Exp14;
-Epreinc.     Exp15 ::= "++" Ident;
-Epredec.     Exp15 ::= "--" Ident;
+Epreinc.     Exp15 ::= "++" LValue;
+Epredec.     Exp15 ::= "--" LValue;
 Epreop.      Exp15 ::= Unary_operator Exp14;
 
-Epostinc.    Exp16 ::= Ident "++";
-Epostdec.    Exp16 ::= Ident "--";
+Epostinc.    Exp16 ::= LValue "++";
+Epostdec.    Exp16 ::= LValue "--";
 
 Efunk.       Exp17 ::= Ident "(" ")";
 Efunkpar.    Exp17 ::= Ident "(" [Exp2] ")";
 separator nonempty Exp2 "," ;
-Earray.      Exp17 ::= Ident "[" Exp "]" ;
-Evar.        Exp17 ::= Ident;
+Elval.       Exp17 ::= LValue;
 Econst.      Exp17 ::= Constant;
 
 
@@ -119,6 +118,9 @@ Estring.       Constant ::= String;
 
 BTrue.	CBool ::= "true";
 BFalse.	CBool ::= "false";
+
+LVar.	LValue ::= Ident;
+LArrEl.	LValue ::= Ident "[" Exp "]";
 
 Especial. Constant_expression ::= Exp3;
 

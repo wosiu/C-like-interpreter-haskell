@@ -107,6 +107,6 @@ int tab1[] = {1, 2, 3};
 print(tab1[1]);
 
 int tab2[3];
-tab[0] = 1;
-print(tab[0]);
-print(tab[1]);
+tab2[0] = 1;
+print(tab2[0]);
+print(tab2[1]);

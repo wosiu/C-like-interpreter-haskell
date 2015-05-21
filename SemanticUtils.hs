@@ -20,7 +20,16 @@ type FEnv = M.Map Ident FuncCall -- środowisko funkcji
 
 -- bool represented as Int
 data Val = INT Int | BOOL Bool | STRING String | ARR [Val] deriving (Show, Eq, Ord)
+checkTypeCompM :: (Val, Val) -> Semantics ()
+checkTypeCompM (INT old, INT new) = return ()
+checkTypeCompM (BOOL old, BOOL new) = return ()
+checkTypeCompM (STRING old, STRING new) = return ()
+checkTypeCompM (ARR oldArr, ARR newArr) = checkTypeCompM (head oldArr, head newArr)
+checkTypeCompM _ = throwError "Incompatible types"
+
 type St = M.Map Loc Val -- stan
+
+
 
 data Env = Env {
 		vEnv :: VEnv,
@@ -64,11 +73,8 @@ changeVarValue :: Ident -> Val -> Semantics ()
 changeVarValue ident newVal = do
 	loc <- takeLocation ident
 	Just val <- gets (M.lookup loc)
-	case (val, newVal) of
-		(INT old, INT new) -> modify (M.insert loc newVal)
-		(BOOL old, BOOL new) -> modify (M.insert loc newVal)
-		(STRING old, STRING new) -> modify (M.insert loc newVal)
-		_ -> throwError $ "Variable " ++ show ident ++ " has different type"
+	_ <- checkTypeCompM (val, newVal)
+	modify (M.insert loc newVal)
 
 -- change value of variable under ident using given function and return new value
 mapIntVar :: Ident -> (Int -> Int) -> Semantics Val
@@ -80,7 +86,6 @@ mapIntVar ident fun = do
 			changeVarValue ident b
 			return b
 		_ -> throwError $ "Variable under ident " ++ show ident ++ " is not integer"
-
 
 takeFunction :: Ident -> Semantics FuncCall
 takeFunction ident = do

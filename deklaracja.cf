@@ -32,7 +32,7 @@ InitDec.               Variable ::= Initialized_variable ;
 UninitDec.             Variable ::= Uninitialized_variable ;
 
 UninitSimpleTypeDec.   Uninitialized_variable ::= Dec_base ;
-UninitArr.             Uninitialized_variable ::= Dec_base "[" Constant_expression "]" ;
+UninitArr.             Uninitialized_variable ::= Dec_base "[" Exp2 "]" ;
 
 InitSimpleTypeDec.     Initialized_variable ::= Dec_base "=" Initializer;
 InitArr.               Initialized_variable ::= Dec_base "[" "]" "=" "{" [Initializer] "}" ;

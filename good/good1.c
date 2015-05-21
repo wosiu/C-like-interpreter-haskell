@@ -102,4 +102,11 @@ print(str1 == str2);
 print(str1);
 
 
+//////////////
+int tab1[] = {1, 2, 3};
+print(tab1[1]);
 
+int tab2[3];
+tab[0] = 1;
+print(tab[0]);
+print(tab[1]);

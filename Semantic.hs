@@ -82,7 +82,21 @@ transUninitialized_variable x = do
 				Tbool -> putVarDecl ident $ BOOL False
 				Tint -> putVarDecl ident $ INT 0
 				Tstring -> putVarDecl ident $ STRING ""
-		UninitArr dec_base constant_expression -> return emptyEnv
+		UninitArr dec_base exp -> do
+			let (DecBase type_specifier ident) = dec_base
+			sizeVal <- transExp exp
+			case sizeVal of
+				INT size -> do
+					if size <= 0 then throwError "Array size must be greater than 0"
+					else case type_specifier of
+						Tbool -> putVarDecl ident $ ARR $ _fillList (BOOL False) size
+						Tint -> putVarDecl ident $ ARR $ _fillList (INT 0) size
+						Tstring -> putVarDecl ident $ ARR $ _fillList (STRING "") size
+				_ -> throwError "Bad type of array size"
+
+_fillList :: Val -> Int -> [Val]
+_fillList val 0 = []
+_fillList val size = val:(_fillList val (size-1))
 
 
 transInitialized_variable :: Initialized_variable -> Semantics Env
@@ -91,8 +105,22 @@ transInitialized_variable x = do
 		InitSimpleTypeDec dec_base initializer -> do
 			val <- transInitializer initializer
 			let (DecBase type_specifier ident) = dec_base
-			putVarDecl ident $ val
-		InitArr dec_base initializers  -> return emptyEnv
+			if _checkType type_specifier val then
+				putVarDecl ident $ val
+			else throwError "Invalid type of initializer"
+		InitArr dec_base initializers -> do
+			let (DecBase type_specifier ident) = dec_base
+			elements <- mapM transInitializer initializers
+			if all (_checkType type_specifier) elements then
+				putVarDecl ident $ ARR elements
+			else throwError "Invalid type of array initializing element"
+
+
+_checkType :: Type_specifier -> Val -> Bool
+_checkType Tbool (BOOL _) = True
+_checkType Tint (INT _) = True
+_checkType Tstring (STRING _) = True
+_checkType _ _ = False
 
 
 transInitializer :: Initializer -> Semantics Val
@@ -101,7 +129,7 @@ transInitializer x = do
 		InitExpr exp -> transExp exp
 
 
-transFunction :: Function ->Semantics Env
+transFunction :: Function -> Semantics Env
 transFunction x = do
 	env <- ask
 	case x of
@@ -239,6 +267,7 @@ transPrint_stm (SPrint exp) = do
 		INT a -> printValue a
 		BOOL a -> printValue a
 		STRING a -> printString a
+		_ -> throwError "Cannot print object of that type"
 	return NOTHING
 
 
@@ -325,7 +354,14 @@ transExp x = do
 		Efunkpar ident exps -> do
 			args <- mapM transExp exps
 			resolveFunc ident args
-		Earray ident exp -> return $ INT 0
+		Earray ident exp -> do
+			ival <- transExp exp
+			arr <- takeValueFromIdent ident
+			case (arr, ival) of
+				(ARR list, INT i) -> do
+					if (i >= 0) && (i < length list) then return $ list !! i
+					else throwError "Index out of bound"
+				_ -> throwError "Incorrect array element call"
 		Evar ident -> takeValueFromIdent ident
 		Econst constant -> return $ transConstant constant
 
@@ -341,11 +377,6 @@ transCBool :: CBool -> Val
 transCBool x = case x of
 	BTrue -> BOOL True
 	BFalse -> BOOL False
-
-
---transConstant_expression :: Constant_expression -> Result
---transConstant_expression x = case x of
---	Especial exp -> failure x
 
 
 transUnary_operator :: Unary_operator -> Val -> Semantics Val

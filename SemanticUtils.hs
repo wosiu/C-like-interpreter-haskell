@@ -19,7 +19,7 @@ type FuncCall = [Val] -> Semantics Jump
 type FEnv = M.Map Ident FuncCall -- środowisko funkcji
 
 -- bool represented as Int
-data Val = INT Int | BOOL Bool | STRING String deriving (Show, Eq, Ord)
+data Val = INT Int | BOOL Bool | STRING String | ARR [Val] deriving (Show, Eq, Ord)
 type St = M.Map Loc Val -- stan
 
 data Env = Env {

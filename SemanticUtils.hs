@@ -132,8 +132,8 @@ putMultiVarDecl a b = do
 	throwError "Wrong number of arguments during function call"
 
 
-putFuncDecl :: Ident -> [Ident] -> (Semantics Jump) -> Semantics Env
-putFuncDecl ident params fun = do
+putFuncDef :: Ident -> [Ident] -> (Semantics Jump) -> Semantics Env
+putFuncDef ident params fun = do
 	env <- ask
 	let venv = vEnv env
 	let fenv = fEnv env

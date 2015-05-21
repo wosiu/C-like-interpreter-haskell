@@ -62,6 +62,12 @@ print(a);
 */
 
 ///////////////
+int infRec() {
+	infRec();
+}
+
+
+///////////////
 int z = 0;
 int h() {
 	print(z);

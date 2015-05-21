@@ -13,12 +13,11 @@ import Lexdeklaracja
 import Pardeklaracja
 import Absdeklaracja
 import Semantic
+import SemanticStaticChecker (staticCheck)
 import SemanticUtils
 
 import ErrM
 
-
---let defPrompt = "C-wos>>> "
 
 main = do
 	args <- getArgs
@@ -42,9 +41,9 @@ main = do
 
 runProgram :: Program -> Semantics Env
 runProgram program = do
-	-- todo type checking
-	-- 
-	transProgram program
+	env <- ask
+	staticCheck program
+	local (const env) (transProgram program)
 
 
 runShell :: String -> String -> Semantics Env

@@ -1,2 +1,8 @@
-int a[] = {1,2,3};
-print(a[true]); 
+// types static check
+
+bool b = false;
+if (true) {
+} else {
+	b += 2;
+}
+

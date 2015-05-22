@@ -7,7 +7,7 @@ import Control.Monad.Error
 
 import Absdeklaracja
 import SemanticUtils
-import Semantic (transVariable, transParam, transExp, transExp_or_empty, transJump_stm)
+import Commons
 
 
 staticCheck :: Program -> Semantics ()

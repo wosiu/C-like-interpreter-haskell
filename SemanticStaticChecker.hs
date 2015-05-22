@@ -57,6 +57,7 @@ transNamespace x = do
 			return jumps
 		EmptyBlockSp -> return []
 
+extractJumps = transNamespace
 
 transDec :: Dec -> Semantics Env
 transDec x = do

@@ -8,6 +8,7 @@ import Control.Monad.Error
 import Absdeklaracja
 import SemanticUtils
 import Commons
+import SemanticStaticChecker (extractJumps)
 
 transProgram :: Program -> Semantics Env
 transProgram (Progr compund_contents) = do

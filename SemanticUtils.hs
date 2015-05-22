@@ -147,11 +147,11 @@ putFuncDef type_specifier ident params fun = do
 	env <- ask
 	let venv = vEnv env
 	let fenv = fEnv env
-	let paramsTypes = Prelude.map fst params
-	let paramsIdents = Prelude.map snd params
 	if (M.member ident fenv) then
 		throwError $ show ident ++ " function - already used in scope"
 	else do
+		let paramsTypes = Prelude.map fst params
+		let paramsIdents = Prelude.map snd params
 		let env2 = Env { vEnv = venv, fEnv = (M.insert ident g fenv) }
 			where
 				g :: [Val] -> Semantics Jump

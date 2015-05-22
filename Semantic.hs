@@ -87,12 +87,12 @@ transUninitialized_variable x = do
 			sizeVal <- transExp exp
 			case sizeVal of
 				INT size -> do
-					if size <= 0 then throwError "Runtime - Array size must be greater than 0"
+					if size <= 0 then throwError "Array size must be greater than 0"
 					else case type_specifier of
 						Tbool -> putVarDecl ident $ ARR $ _fillList (BOOL False) size
 						Tint -> putVarDecl ident $ ARR $ _fillList (INT 0) size
 						Tstring -> putVarDecl ident $ ARR $ _fillList (STRING "") size
-				_ -> throwError "Runtime - Bad type of array size"
+				_ -> throwError "Bad type of array size"
 
 _fillList :: Val -> Int -> [Val]
 _fillList val 0 = []
@@ -162,7 +162,7 @@ transSelection_stm x = do
 					(_, jump) <- transCompund_content compund_content
 					return jump
 				BOOL False -> return NOTHING
-				_ -> throwError "Runtime - Non-logical condition in if statement"
+				_ -> throwError "Non-logical condition in if statement"
 		SifElse exp compund_content1 compund_content2 -> do
 			n <- transExp exp
 			case n of
@@ -172,7 +172,7 @@ transSelection_stm x = do
 				BOOL False -> do
 					(_, jump) <- transCompund_content compund_content2
 					return jump
-				_ -> throwError "Runtime - Non-logical condition in if statement"
+				_ -> throwError "Non-logical condition in if statement"
 		SswitchOne exp switch_content  -> do
 			n <- transExp exp
 			evalSwitchContents n [switch_content]
@@ -234,7 +234,7 @@ _forloop stopCond postExp compund_content = do
 				_ -> do
 					_ <- transExp_or_empty postExp
 					_forloop stopCond postExp compund_content
-		_ -> throwError "Runtime - Stop condition in for loop must be bool type"
+		_ -> throwError "Stop condition in for loop must be bool type"
 
 transExp_or_empty :: Exp_or_empty -> Semantics Val
 transExp_or_empty x = do
@@ -260,7 +260,7 @@ transPrint_stm (SPrint exp) = do
 		INT a -> printValue a
 		BOOL a -> printValue a
 		STRING a -> printString a
-		_ -> throwError "Runtime - Cannot print object of that type"
+		_ -> throwError "Cannot print object of that type"
 	return NOTHING
 
 

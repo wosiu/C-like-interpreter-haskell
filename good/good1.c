@@ -53,8 +53,11 @@ b = f2();
 print(a);
 print(b);
 
+////////////////
+int f3(int param) { return param; }
+print(f3(2));
 
-/*
+/*	
 a = 10000;
 int f(int a, int b) { a = 0; return a + b; }
 print(f(1,1));
@@ -116,3 +119,5 @@ int tab2[3];
 tab2[0] = 1;
 print(tab2[0]);
 print(tab2[1]);
+
+

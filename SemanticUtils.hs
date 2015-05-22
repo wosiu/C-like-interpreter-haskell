@@ -21,15 +21,24 @@ type FEnv = M.Map Ident FuncCall -- środowisko funkcji
 -- bool represented as Int
 data Val = INT Int | BOOL Bool | STRING String | ARR [Val] deriving (Show, Eq, Ord)
 checkTypeCompM :: (Val, Val) -> Semantics ()
-checkTypeCompM (INT old, INT new) = return ()
-checkTypeCompM (BOOL old, BOOL new) = return ()
-checkTypeCompM (STRING old, STRING new) = return ()
-checkTypeCompM (ARR oldArr, ARR newArr) = checkTypeCompM (head oldArr, head newArr)
+checkTypeCompM (INT _, INT _) = return ()
+checkTypeCompM (BOOL _, BOOL _) = return ()
+checkTypeCompM (STRING _, STRING _) = return ()
+checkTypeCompM (ARR arr1, ARR arr2) = checkTypeCompM (head arr1, head arr2)
 checkTypeCompM _ = throwError "Incompatible types"
 
+checkType :: Type_specifier -> Val -> Bool
+checkType Tbool (BOOL _) = True
+checkType Tint (INT _) = True
+checkType Tstring (STRING _) = True
+checkType _ _ = False
+
+specifierToDefaultVal :: Type_specifier -> Val
+specifierToDefaultVal Tbool = BOOL False
+specifierToDefaultVal Tint = INT 0
+specifierToDefaultVal Tstring = STRING ""
+
 type St = M.Map Loc Val -- stan
-
-
 
 data Env = Env {
 		vEnv :: VEnv,
@@ -112,7 +121,7 @@ putVarDecl ident val = do
 	env <- ask
 	let venv = vEnv env
 	let fenv = fEnv env
-	if (M.member ident venv) then
+	if False && (M.member ident venv) then
 		throwError $ show ident ++ " - already used in scope"
 	else do
 		Just (INT newLoc) <- gets (M.lookup 0)
@@ -132,11 +141,13 @@ putMultiVarDecl a b = do
 	throwError "Wrong number of arguments during function call"
 
 
-putFuncDef :: Ident -> [Ident] -> (Semantics Jump) -> Semantics Env
-putFuncDef ident params fun = do
+putFuncDef :: Type_specifier -> Ident -> [(Type_specifier, Ident)] -> (Semantics Jump) -> Semantics Env
+putFuncDef type_specifier ident params fun = do
 	env <- ask
 	let venv = vEnv env
 	let fenv = fEnv env
+	let paramsTypes = Prelude.map fst params
+	let paramsIdents = Prelude.map snd params
 	if (M.member ident fenv) then
 		throwError $ show ident ++ " function - already used in scope"
 	else do
@@ -144,10 +155,22 @@ putFuncDef ident params fun = do
 			where
 				g :: [Val] -> Semantics Jump
 				g = \args -> do
-					env3 <- local (const env2) (putMultiVarDecl params args)
-					local (const env3) fun
+					checkArgs paramsTypes args
+					env3 <- local (const env2) (putMultiVarDecl paramsIdents args)
+					jump <- local (const env3) fun
+					case jump of
+						RETURN val -> return jump
+						NOTHING -> return $ RETURN $ specifierToDefaultVal type_specifier
+						_ -> throwError "Uncaught jump statement on function exit"
 		return env2
 
+checkArgs :: [Type_specifier] -> [Val] -> Semantics ()
+checkArgs (typ:types) (val:vals) = do
+	if checkType typ val then checkArgs types vals
+	else throwError "Wrong type of argument in function call"
+
+checkArgs [] [] = return ()
+checkArgs _ _ = throwError "Wrong number of arguments"
 
 resolveFunc :: Ident -> [Val] -> Semantics Val
 resolveFunc ident args = do
@@ -155,5 +178,4 @@ resolveFunc ident args = do
 	jump <- f args
 	case jump of
 		RETURN val -> return val
-		-- todo zwracanie w zaleznosci od typu
-		_ -> return (INT 0)
+		_ -> throwError "No return statement on function exit"

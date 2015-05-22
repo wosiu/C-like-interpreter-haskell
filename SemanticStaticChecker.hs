@@ -7,54 +7,55 @@ import Control.Monad.Error
 
 import Absdeklaracja
 import SemanticUtils
-import Semantic (transVariable, transParam, transExp, transExp_or_empty)
+import Semantic (transVariable, transParam, transExp, transExp_or_empty, transJump_stm)
 
 
 staticCheck :: Program -> Semantics ()
 staticCheck (Progr compund_contents) = do
-	(env, jump) <- evalContent compund_contents
+	(env, jumps) <- evalContent compund_contents
 	-- debug
 	-- printValue env
-	case jump of
-		NOTHING -> return ()
-		_ -> throwError $ (show jump) ++ " on program exit - jump statement without proper surrounding statement"
+	case jumps of
+		[] -> return ()
+		_ -> throwError $ (show jumps) ++ " uncaught jump statements on program exit"
 
 
-evalContent :: [Compund_content] -> Semantics (Env, Jump)
+evalContent :: [Compund_content] -> Semantics (Env, [Jump])
 evalContent (x:xs) = do
-	(env2, jump) <- transCompund_content x
-	local (const env2) (evalContent xs)
+	(env1, jumps1) <- transCompund_content x
+	(env2, jumps2) <- local (const env1) (evalContent xs)
+	return (env2, jumps1 ++ jumps2)
 
 evalContent [] = do
 	env <- ask
-	return (env, NOTHING)
-	
-transCompund_content :: Compund_content -> Semantics (Env, Jump)
+	return (env, [])
+
+transCompund_content :: Compund_content -> Semantics (Env, [Jump])
 transCompund_content x = do
 	env <- ask
 	case x of
 		ScompContentStm stm -> do
-			jump <- transStm stm
-			return (env, jump)
+			jumps <- transStm stm
+			return (env, jumps)
 		ScompContentDec dec -> do
 			env2 <- (transDec dec)
-			return (env2, NOTHING)
+			return (env2, [])
 		ScompContentExp exp -> do
 			transExp exp
-			return (env, NOTHING)
+			return (env, [])
 		ScompContentSpace namespace -> do
-			jump <- transNamespace namespace
-			return (env, jump)
+			jumps <- transNamespace namespace
+			return (env, jumps)
 
 
-transNamespace :: Namespace -> Semantics Jump
+transNamespace :: Namespace -> Semantics [Jump]
 transNamespace x = do
 	case x of
 		BlockSp compund_contents -> do
 			-- ignore environment from nested namespace
-			(_, jump) <- evalContent compund_contents
-			return jump
-		EmptyBlockSp -> return NOTHING
+			(_, jumps) <- evalContent compund_contents
+			return jumps
+		EmptyBlockSp -> return []
 
 
 transDec :: Dec -> Semantics Env
@@ -62,6 +63,7 @@ transDec x = do
 	case x of
 		VariableDec variable -> transVariable variable
 		FuncDec function -> transFunction function
+
 
 transFunction :: Function -> Semantics Env
 transFunction x = do
@@ -71,40 +73,48 @@ transFunction x = do
 		ParamFunc dec_base params namespace_stm -> do
 			let (DecBase type_specifier ident) = dec_base
 			argIdents <- mapM transParam params
+			let paramsIdents = map snd argIdents
+			let defaultValues = map specifierToDefaultVal $ map fst argIdents
+			env1 <- putFuncDef type_specifier ident argIdents (return NOTHING)
+			env2 <- local (const env1) (putMultiVarDecl paramsIdents defaultValues)
+			jumps <- local (const env2) (transNamespace namespace_stm)
+			-- check jumps with type specifier - should not be break, continue as well
+			let filtr jump =
+				case jump of
+					RETURN val -> checkType type_specifier val
+					_ -> False
+			if all filtr jumps then return env1
+			else throwError "Wrong type of jump statement inside function body"
 
-			env <- putFuncDef ident argIdents (return NOTHING)
-			jump <- local (const env) (transNamespace namespace_stm)
-			-- check jumps here with type specifier - should not be break, continue as well
-			return env
 
-
-
-transStm :: Stm -> Semantics Jump
+transStm :: Stm -> Semantics [Jump]
 transStm x = do
 	case x of
 		SelS selection_stm -> transSelection_stm selection_stm
 		IterS iter_stm -> transIter_stm iter_stm
-		JumpS jump_stm -> transJump_stm jump_stm
-		PrintS print_stm -> return NOTHING
+		JumpS jump_stm -> do
+			jump <- transJump_stm jump_stm
+			return [jump]
+		PrintS print_stm -> return [] ---todo
 
 
-transSelection_stm :: Selection_stm -> Semantics Jump
+transSelection_stm :: Selection_stm -> Semantics [Jump]
 transSelection_stm x = do
 	case x of
 		Sif exp compund_content -> do
 			n <- transExp exp
 			case n of
 				BOOL _ -> do
-					(_, jump) <- transCompund_content compund_content
-					return jump
+					(_, jumps) <- transCompund_content compund_content
+					return jumps
 				_ -> throwError "Non-logical condition in if statement"
 		SifElse exp compund_content1 compund_content2 -> do
 			n <- transExp exp
 			case n of
 				BOOL _ -> do
-					(_, jump) <- transCompund_content compund_content1
-					(_, jump) <- transCompund_content compund_content2
-					return jump
+					(_, jumps1) <- transCompund_content compund_content1
+					(_, jumps2) <- transCompund_content compund_content2
+					return $ jumps1 ++ jumps2
 				_ -> throwError "Non-logical condition in if statement"
 		SswitchOne exp switch_content  -> do
 			n <- transExp exp
@@ -114,31 +124,33 @@ transSelection_stm x = do
 			evalSwitchContents n switch_contents
 
 
-evalSwitchContents :: Val -> [Switch_content] -> Semantics Jump
+evalSwitchContents :: Val -> [Switch_content] -> Semantics [Jump]
 evalSwitchContents predicat (x:xs) = do
-	jump <- transSwitch_content predicat x
-	case jump of
-		BREAK -> return NOTHING
-		NOTHING -> evalSwitchContents predicat xs
-		_ -> return jump
+	jumps <- transSwitch_content predicat x
+	let
+		filtr acc BREAK = acc
+		filtr acc jump = jump:acc
+	let jumps1 = foldl filtr [] jumps
+	jumps2 <- evalSwitchContents predicat xs
+	return $ jumps1 ++ jumps2
 
-evalSwitchContents _ [] = return NOTHING
+evalSwitchContents _ [] = return []
 
 
-transSwitch_content :: Val -> Switch_content -> Semantics Jump
+transSwitch_content :: Val -> Switch_content -> Semantics [Jump]
 transSwitch_content predicat x = do
 	case x of
 		SswitchCase exp compund_contents -> do
 			n <- transExp exp
 			checkTypeCompM(n, predicat)
-			(_, jump) <- evalContent compund_contents
-			return jump
+			(_, jumps) <- evalContent compund_contents
+			return jumps
 		SswitchDef compund_contents  -> do
-			(_, jump) <- evalContent compund_contents
-			return jump
+			(_, jumps) <- evalContent compund_contents
+			return jumps
 
 
-transIter_stm :: Iter_stm -> Semantics Jump
+transIter_stm :: Iter_stm -> Semantics [Jump]
 transIter_stm x = do
 	case x of
 		Swhile exp compund_content -> _forloop (SnonemptyExp exp) SemptyExp compund_content
@@ -147,25 +159,15 @@ transIter_stm x = do
 			_forloop exp_or_empty2 exp_or_empty3 compund_content4
 
 
-_forloop :: Exp_or_empty -> Exp_or_empty -> Compund_content -> Semantics Jump
+_forloop :: Exp_or_empty -> Exp_or_empty -> Compund_content -> Semantics [Jump]
 _forloop stopCond postExp compund_content = do
 	stopExp <- transExp_or_empty stopCond
 	case stopExp of
 		(BOOL _) -> do
-			-- ignore environment changes made in for scope
-			(_, jump) <- transCompund_content compund_content
+			(_, jumps) <- transCompund_content compund_content
 			_ <- transExp_or_empty postExp
-			case jump of
-				RETURN v -> return (RETURN v) -- dodac do jumps i zwrocic
-				_ -> return NOTHING -- nie dodawac break/continue do jumps
+			let
+				filtr acc (RETURN v) = (RETURN v):acc
+				filtr acc _ = acc
+			return $ foldl filtr [] jumps
 		_ -> throwError "Stop condition in for loop must be bool type"
-
-
-transJump_stm :: Jump_stm -> Semantics Jump
-transJump_stm x = do
-	case x of
-		Scontinue -> return CONTINUE
-		Sbreak -> return BREAK
-		Sreturn exp -> do
-			n <- transExp exp
-			return (RETURN n)

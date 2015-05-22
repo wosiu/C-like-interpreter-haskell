@@ -82,6 +82,7 @@ transUninitialized_variable x = do
 				Tbool -> putVarDecl ident $ BOOL False
 				Tint -> putVarDecl ident $ INT 0
 				Tstring -> putVarDecl ident $ STRING ""
+				Tauto -> throwError "Uninitialized auto variable - cannot deduce variable type"
 		UninitArr dec_base exp -> do
 			let (DecBase type_specifier ident) = dec_base
 			sizeVal <- transExp exp
@@ -106,15 +107,24 @@ transInitialized_variable x = do
 			val <- transInitializer initializer
 			let (DecBase type_specifier ident) = dec_base
 			if checkType type_specifier val then
-				putVarDecl ident $ val
+				putVarDecl ident val
 			else throwError "Invalid type of initializer"
 		InitArr dec_base initializers -> do
 			let (DecBase type_specifier ident) = dec_base
 			elements <- mapM transInitializer initializers
-			if all (checkType type_specifier) elements then
+			if type_specifier == Tauto then
+				transInitialized_variable $ InitAutoArr dec_base initializers
+			else if all (checkType type_specifier) elements then
 				putVarDecl ident $ ARR elements
 			else throwError "Invalid type of array initializing element"
-
+		InitAutoArr dec_base initializers -> do
+			let (DecBase type_specifier ident) = dec_base
+			if (type_specifier == Tauto) then do
+				elements <- mapM transInitializer initializers
+				let (x:xs) = elements
+				foldM_ (\acc e -> checkTypeCompM x e) () xs
+				putVarDecl ident $ ARR elements
+			else throwError "Invalid initialization of simple type"
 
 transInitializer :: Initializer -> Semantics Val
 transInitializer x = do
@@ -438,7 +448,7 @@ changeLVal lvalue val = do
 				(ARR arr, INT i) -> do
 					if (i < length arr) && (i >= 0) then do
 						let oldVal = (arr !! i)
-						_ <- checkTypeCompM (oldVal, val)
+						_ <- checkTypeCompM oldVal val
 						let newArr = (take i arr) ++ [val] ++ (drop (i+1) arr)
 						changeVarValue ident (ARR newArr)
 					else throwError $ "Index out of bound"

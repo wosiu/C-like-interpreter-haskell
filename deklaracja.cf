@@ -37,6 +37,8 @@ UninitArr.             Uninitialized_variable ::= Dec_base "[" Exp2 "]" ;
 
 InitSimpleTypeDec.     Initialized_variable ::= Dec_base "=" Initializer;
 InitArr.               Initialized_variable ::= Dec_base "[" "]" "=" "{" [Initializer] "}" ;
+-- in semantic allow only: auto ident = { 1, 2, 3 }
+InitAutoArr.           Initialized_variable ::= Dec_base "=" "{" [Initializer] "}" ;
 
 InitExpr.    Initializer ::= Exp2 ;
 separator nonempty Initializer "," ;

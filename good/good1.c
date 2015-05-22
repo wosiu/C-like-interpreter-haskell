@@ -120,4 +120,16 @@ tab2[0] = 1;
 print(tab2[0]);
 print(tab2[1]);
 
+/////////////
+auto a1 = 2;
+auto a2 = false;
+auto a3 = "asd";
+print(a1);
+print(a2);
+print(a3);
+
+auto ar1[] = {1, 2, 3};
+auto ar2 = {1, 2, 3};
+
+
 

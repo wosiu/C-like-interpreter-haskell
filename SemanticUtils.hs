@@ -20,12 +20,12 @@ type FEnv = M.Map Ident FuncCall -- środowisko funkcji
 
 -- bool represented as Int
 data Val = INT Int | BOOL Bool | STRING String | ARR [Val] deriving (Show, Eq, Ord)
-checkTypeCompM :: (Val, Val) -> Semantics ()
-checkTypeCompM (INT _, INT _) = return ()
-checkTypeCompM (BOOL _, BOOL _) = return ()
-checkTypeCompM (STRING _, STRING _) = return ()
-checkTypeCompM (ARR arr1, ARR arr2) = checkTypeCompM (head arr1, head arr2)
-checkTypeCompM _ = throwError "Incompatible types"
+checkTypeCompM :: Val -> Val -> Semantics ()
+checkTypeCompM (INT _) (INT _) = return ()
+checkTypeCompM (BOOL _) (BOOL _) = return ()
+checkTypeCompM (STRING _) (STRING _) = return ()
+checkTypeCompM (ARR arr1) (ARR arr2) = checkTypeCompM (head arr1) (head arr2)
+checkTypeCompM _ _ = throwError "Incompatible types"
 
 checkType :: Type_specifier -> Val -> Bool
 checkType Tbool (BOOL _) = True
@@ -83,7 +83,7 @@ changeVarValue :: Ident -> Val -> Semantics ()
 changeVarValue ident newVal = do
 	loc <- takeLocation ident
 	Just val <- gets (M.lookup loc)
-	_ <- checkTypeCompM (val, newVal)
+	_ <- checkTypeCompM val newVal
 	modify (M.insert loc newVal)
 
 -- change value of variable under ident using given function and return new value

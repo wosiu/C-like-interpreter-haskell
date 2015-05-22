@@ -142,7 +142,7 @@ transSwitch_content predicat x = do
 	case x of
 		SswitchCase exp compund_contents -> do
 			n <- transExp exp
-			checkTypeCompM(n, predicat)
+			checkTypeCompM n predicat
 			(_, jumps) <- evalContent compund_contents
 			return jumps
 		SswitchDef compund_contents  -> do

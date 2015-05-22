@@ -25,6 +25,7 @@ FuncDec.     Dec ::= Function ;
 Tbool.        Type_specifier ::= "bool";
 Tint.         Type_specifier ::= "int";
 Tstring.      Type_specifier ::= "string";
+Tauto.        Type_specifier ::= "auto";
 
 DecBase.  Dec_base ::= Type_specifier Ident;
 

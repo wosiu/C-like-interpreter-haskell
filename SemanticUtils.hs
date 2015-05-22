@@ -31,6 +31,7 @@ checkType :: Type_specifier -> Val -> Bool
 checkType Tbool (BOOL _) = True
 checkType Tint (INT _) = True
 checkType Tstring (STRING _) = True
+checkType Tauto _ = True
 checkType _ _ = False
 
 specifierToDefaultVal :: Type_specifier -> Val

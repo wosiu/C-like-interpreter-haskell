@@ -118,7 +118,7 @@ transStm x = do
 		JumpS jump_stm -> do
 			jump <- transJump_stm jump_stm
 			return [jump]
-		PrintS print_stm -> return [] 
+		PrintS print_stm -> return []
 
 
 transSelection_stm :: Selection_stm -> Semantics [Jump]

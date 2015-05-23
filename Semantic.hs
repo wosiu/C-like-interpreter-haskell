@@ -178,7 +178,7 @@ transPrint_stm (SPrint exp) = do
 		INT a -> printValue a
 		BOOL a -> printValue a
 		STRING a -> printString a
-		_ -> throwError "Cannot print object of that type"
+		ARR arr -> printValue arr
 	return NOTHING
 
 

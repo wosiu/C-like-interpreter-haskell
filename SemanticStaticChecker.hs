@@ -4,6 +4,7 @@ import Control.Monad
 import Control.Monad.Reader
 import Control.Monad.State
 import Control.Monad.Error
+import Data.List (find)
 
 import Absdeklaracja
 import SemanticUtils
@@ -79,13 +80,34 @@ transFunction x = do
 			env1 <- putFuncDef type_specifier ident argIdents (return NOTHING)
 			env2 <- local (const env1) (putMultiVarDecl paramsIdents defaultValues)
 			jumps <- local (const env2) (transNamespace namespace_stm)
-			-- check jumps with type specifier - should not be break, continue as well
-			let filtr jump =
-				case jump of
-					RETURN val -> checkType type_specifier val
-					_ -> False
+
+			-- deduce auto if appeared in function signature
+			type_specifier <- deduceReturnSpecifier type_specifier jumps
+
+			-- check all jumps - all must be the same type
+			let
+				filtr (RETURN val) = checkType type_specifier val
+				filtr _ = False -- should not be break, continue as well
 			if all filtr jumps then return env1
-			else throwError "Wrong type of jump statement inside function body"
+			else throwError "Wrong type of jump statement appears inside function body"
+
+deduceReturnSpecifier :: Type_specifier -> [Jump] -> Semantics Type_specifier
+deduceReturnSpecifier type_specifier jumps = do
+	if type_specifier /= Tauto then return type_specifier
+	else case jumps of
+		((RETURN val):xs) -> return $ valToSpecifier val
+		(jump:xs) -> throwError $ show jump ++ " on the function exit"
+		[] -> return $ Tint
+
+--
+--resolveReturnAuto :: Namespace -> Semantics Type_specifier
+--resolveReturnAuto namespace_stm = do
+--	jumps <- extractJumps namespace_stm
+--	-- no 'return' in function body - choose whatever, e.g. int
+--	if null jumps then return Cint
+--	else case fst jumps of
+--		RETURN val -> return $ valToSpecifier val
+--		jump -> throwError $ show jump " on the exit, while RETURN expected"
 
 
 transStm :: Stm -> Semantics [Jump]

@@ -11,15 +11,21 @@ import Control.Monad.Error
 
 type Semantics = ReaderT Env (StateT St (ErrorT String IO))
 
-type Loc = Int -- lokacja
--- todo param type
-type VEnv = M.Map Ident Loc -- środowisko zmiennych
+type Loc = Int -- location
+type VEnv = M.Map Ident Loc -- variables environment
 
 type FuncCall = [Val] -> Semantics Jump
-type FEnv = M.Map Ident FuncCall -- środowisko funkcji
+type FEnv = M.Map Ident FuncCall -- functions environment
 
--- bool represented as Int
+type St = M.Map Loc Val -- state
+
+data Env = Env {
+		vEnv :: VEnv,
+		fEnv :: FEnv
+	}
+
 data Val = INT Int | BOOL Bool | STRING String | ARR [Val] deriving (Show, Eq, Ord)
+
 checkTypeCompM :: Val -> Val -> Semantics ()
 checkTypeCompM (INT _) (INT _) = return ()
 checkTypeCompM (BOOL _) (BOOL _) = return ()
@@ -37,14 +43,14 @@ checkType _ _ = False
 specifierToDefaultVal :: Type_specifier -> Val
 specifierToDefaultVal Tbool = BOOL False
 specifierToDefaultVal Tint = INT 0
+specifierToDefaultVal Tauto = INT 0
 specifierToDefaultVal Tstring = STRING ""
 
-type St = M.Map Loc Val -- stan
+valToSpecifier :: Val -> Type_specifier
+valToSpecifier (BOOL _) = Tbool
+valToSpecifier (INT _) = Tint
+valToSpecifier (STRING _) = Tstring
 
-data Env = Env {
-		vEnv :: VEnv,
-		fEnv :: FEnv
-	}
 
 instance Show Env where
 	show env = "Environment debug: Variables: " ++ show (vEnv env) ++ ", Func: " ++ show (M.keys (fEnv env))

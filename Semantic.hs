@@ -8,7 +8,6 @@ import Control.Monad.Error
 import Absdeklaracja
 import SemanticUtils
 import Commons
-import SemanticStaticChecker (extractJumps)
 
 transProgram :: Program -> Semantics Env
 transProgram (Progr compund_contents) = do
@@ -65,6 +64,7 @@ transDec x = do
 		VariableDec variable -> transVariable variable
 		FuncDec function -> transFunction function
 
+
 transFunction :: Function -> Semantics Env
 transFunction x = do
 	env <- ask
@@ -73,12 +73,7 @@ transFunction x = do
 		ParamFunc dec_base params namespace_stm -> do
 			let (DecBase type_specifier ident) = dec_base
 			argIdents <- mapM transParam params
-			--if type_specifier == Tauto then
-			--	type_specifier <- resolveReturnAuto namespace_stm
 			putFuncDef type_specifier ident argIdents (transNamespace namespace_stm)
-
---resolveReturnAuto :: Namespace -> Semantics Type_specifier
---resolveReturnAuto = do
 
 
 transStm :: Stm -> Semantics Jump

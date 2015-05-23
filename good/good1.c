@@ -131,5 +131,17 @@ print(a3);
 auto ar1[] = {1, 2, 3};
 auto ar2 = {1, 2, 3};
 
+/////////////
+auto fauto1() {
+	return true;
+}
+print(fauto1());
+
+auto fauto2() {}
+print(fauto2()); //void functions by default returns 0
+
+/////////////
+bool noreturn() {}
+print( noreturn() ); // if no return statement return default value for each type, for bool it is false
 
 

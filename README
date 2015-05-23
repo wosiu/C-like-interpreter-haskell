@@ -1,0 +1,18 @@
+1. Odpalanie interpretera:
+make
+./interpreter plik_z_kodem
+
+Jesli nie podamy argumentow, interpreter odpali sie w trybie pięknej powłoki
+
+2. Zrealizowałem wszystko co zadeklarowałem w deklaracji, a oprócz:
+- powłoka do interpretowania 'na żywo', tzn. nie czeka z obliczeniami na ctrl+D (EOF). Łapie errory i wypisuje na wyjscie 'rollbackujac' do środowiska sprzed error'a. Wyjscie: ctrl+d lub komenda exit
+- typ string (operacje tj. porownanie, wypisanie, konkatenacja)
+- deklaracja auto (zarówno dla typów prostych, tablic i funkcji)
+
+3. Przykładowe wejścia:
+Przykładwe wejścia do interpretera w katalogach: good oraz bad
+Odpalenie testowania na wszystkich tych plikach:
+test-interpreter.sh
+
+4. Pozostawiłem także obszerne testy parsowania - katalog sample-correct, sample-incorrect. Odpalenie samego parsera na tych testach: 
+test-parser-only.sh

@@ -107,6 +107,12 @@ Type_specifier : 'bool' { Tbool }
   | 'int' { Tint }
   | 'string' { Tstring }
   | 'auto' { Tauto }
+  | ListType_specifier { Ttuple $1 }
+
+
+ListType_specifier :: { [Type_specifier] }
+ListType_specifier : Type_specifier { (:[]) $1 } 
+  | Type_specifier ',' ListType_specifier { (:) $1 $3 }
 
 
 Dec_base :: { Dec_base }
@@ -260,12 +266,17 @@ Exp17 : Ident '(' ')' { Efunk $1 }
   | Ident '(' ListExp2 ')' { Efunkpar $1 $3 }
   | LValue { Elval $1 }
   | Constant { Econst $1 }
-  | '(' Exp ')' { $2 }
+  | Exp18 { $1 }
 
 
 ListExp2 :: { [Exp] }
 ListExp2 : Exp2 { (:[]) $1 } 
   | Exp2 ',' ListExp2 { (:) $1 $3 }
+
+
+Exp18 :: { Exp }
+Exp18 : '(' ListExp2 ')' { Etuple $2 } 
+  | '(' Exp ')' { $2 }
 
 
 Constant :: { Constant }
@@ -282,6 +293,12 @@ CBool : 'true' { BTrue }
 LValue :: { LValue }
 LValue : Ident { LVar $1 } 
   | Ident '[' Exp ']' { LArrEl $1 $3 }
+  | '(' ListIdent ')' { LTuple $2 }
+
+
+ListIdent :: { [Ident] }
+ListIdent : Ident { (:[]) $1 } 
+  | Ident ',' ListIdent { (:) $1 $3 }
 
 
 Constant_expression :: { Constant_expression }

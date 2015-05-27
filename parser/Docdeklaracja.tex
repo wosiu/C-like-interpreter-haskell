@@ -57,8 +57,8 @@ The symbols used in deklaracja are the following: \\
 
 \begin{tabular}{lll}
 {\symb{;}} &{\symb{\{}} &{\symb{\}}} \\
-{\symb{[}} &{\symb{]}} &{\symb{{$=$}}} \\
-{\symb{,}} &{\symb{(}} &{\symb{)}} \\
+{\symb{,}} &{\symb{[}} &{\symb{]}} \\
+{\symb{{$=$}}} &{\symb{(}} &{\symb{)}} \\
 {\symb{:}} &{\symb{{$|$}{$|$}}} &{\symb{\&\&}} \\
 {\symb{{$=$}{$=$}}} &{\symb{!{$=$}}} &{\symb{{$<$}}} \\
 {\symb{{$>$}}} &{\symb{{$<$}{$=$}}} &{\symb{{$>$}{$=$}}} \\
@@ -108,6 +108,12 @@ All other symbols are terminals.\\
  & {\delimit}  &{\terminal{int}}  \\
  & {\delimit}  &{\terminal{string}}  \\
  & {\delimit}  &{\terminal{auto}}  \\
+ & {\delimit}  &{\nonterminal{ListType-specifier}}  \\
+\end{tabular}\\
+
+\begin{tabular}{lll}
+{\nonterminal{ListType-specifier}} & {\arrow}  &{\nonterminal{Type-specifier}}  \\
+ & {\delimit}  &{\nonterminal{Type-specifier}} {\terminal{,}} {\nonterminal{ListType-specifier}}  \\
 \end{tabular}\\
 
 \begin{tabular}{lll}
@@ -261,12 +267,17 @@ All other symbols are terminals.\\
  & {\delimit}  &{\nonterminal{Ident}} {\terminal{(}} {\nonterminal{ListExp2}} {\terminal{)}}  \\
  & {\delimit}  &{\nonterminal{LValue}}  \\
  & {\delimit}  &{\nonterminal{Constant}}  \\
- & {\delimit}  &{\terminal{(}} {\nonterminal{Exp}} {\terminal{)}}  \\
+ & {\delimit}  &{\nonterminal{Exp18}}  \\
 \end{tabular}\\
 
 \begin{tabular}{lll}
 {\nonterminal{ListExp2}} & {\arrow}  &{\nonterminal{Exp2}}  \\
  & {\delimit}  &{\nonterminal{Exp2}} {\terminal{,}} {\nonterminal{ListExp2}}  \\
+\end{tabular}\\
+
+\begin{tabular}{lll}
+{\nonterminal{Exp18}} & {\arrow}  &{\terminal{(}} {\nonterminal{ListExp2}} {\terminal{)}}  \\
+ & {\delimit}  &{\terminal{(}} {\nonterminal{Exp}} {\terminal{)}}  \\
 \end{tabular}\\
 
 \begin{tabular}{lll}
@@ -283,6 +294,12 @@ All other symbols are terminals.\\
 \begin{tabular}{lll}
 {\nonterminal{LValue}} & {\arrow}  &{\nonterminal{Ident}}  \\
  & {\delimit}  &{\nonterminal{Ident}} {\terminal{[}} {\nonterminal{Exp}} {\terminal{]}}  \\
+ & {\delimit}  &{\terminal{(}} {\nonterminal{ListIdent}} {\terminal{)}}  \\
+\end{tabular}\\
+
+\begin{tabular}{lll}
+{\nonterminal{ListIdent}} & {\arrow}  &{\nonterminal{Ident}}  \\
+ & {\delimit}  &{\nonterminal{Ident}} {\terminal{,}} {\nonterminal{ListIdent}}  \\
 \end{tabular}\\
 
 \begin{tabular}{lll}

@@ -111,6 +111,9 @@ transExp x = do
 			resolveFunc ident args
 		Elval lvalue -> transLValue lvalue
 		Econst constant -> return $ transConstant constant
+		Etuple exps -> do
+			vals <- mapM transExp exps
+			return $ TUPLE vals
 
 
 transExp_or_empty :: Exp_or_empty -> Semantics Val
@@ -255,6 +258,12 @@ changeLVal lvalue val = do
 						changeVarValue ident (ARR newArr)
 					else throwError $ "Index out of bound"
 				_ -> throwError $ "Bad array call"
+		LTuple idents -> do
+			case val of
+				TUPLE vals -> do
+					if length idents == length vals then zipWithM_ changeVarValue idents vals
+					else throwError $ "Incorrect number of elements assigned to tuple"
+				_ -> throwError $ "Wrong tuple assignment"
 
 
 transLValue :: LValue -> Semantics Val

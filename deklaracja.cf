@@ -27,6 +27,9 @@ Tint.         Type_specifier ::= "int";
 Tstring.      Type_specifier ::= "string";
 Tauto.        Type_specifier ::= "auto";
 
+Ttuple.       Type_specifier ::= [Type_specifier];
+separator nonempty Type_specifier ",";
+
 DecBase.  Dec_base ::= Type_specifier Ident;
 
 InitDec.               Variable ::= Initialized_variable ;
@@ -113,7 +116,7 @@ Efunkpar.    Exp17 ::= Ident "(" [Exp2] ")";
 separator nonempty Exp2 "," ;
 Elval.       Exp17 ::= LValue;
 Econst.      Exp17 ::= Constant;
-
+Etuple.      Exp18 ::= "(" [Exp2] ")";
 
 Ebool.         Constant ::= CBool;
 Eint.          Constant ::= Integer;
@@ -124,6 +127,9 @@ BFalse.	CBool ::= "false";
 
 LVar.	LValue ::= Ident;
 LArrEl.	LValue ::= Ident "[" Exp "]";
+LTuple. LValue ::= "(" [Ident] ")";
+
+separator nonempty Ident ",";
 
 Especial. Constant_expression ::= Exp3;
 
@@ -145,7 +151,7 @@ Especial. Constant_expression ::= Exp3;
 --_. Exp16 ::= Exp17 ;
 --_. Exp17 ::= "(" Exp ")" ;
 
-coercions Exp 17 ;
+coercions Exp 18 ;
 
 Plus.        Unary_operator ::= "+" ;
 Negative.    Unary_operator ::= "-" ;

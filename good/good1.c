@@ -145,3 +145,15 @@ bool noreturn() {}
 print( noreturn() ); // if no return statement return default value for each type, for bool it is false
 
 
+////////////
+int t1; bool t2; string t3;
+(t1, t2, t3) = (5, true, "tuples are cool!");
+print(t1);
+print(t2);
+print(t3);
+
+auto autoTuple = (6, false, "auto tuples are even more cool!");
+(t1, t2, t3) = autoTuple; 
+print(t1);
+print(t2);
+print(t3);

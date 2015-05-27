@@ -45,6 +45,7 @@ transType_specifier x = case x of
   Tint  -> failure x
   Tstring  -> failure x
   Tauto  -> failure x
+  Ttuple type_specifiers  -> failure x
 
 
 transDec_base :: Dec_base -> Result
@@ -158,6 +159,7 @@ transExp x = case x of
   Efunkpar id exps  -> failure x
   Elval lvalue  -> failure x
   Econst constant  -> failure x
+  Etuple exps  -> failure x
 
 
 transConstant :: Constant -> Result
@@ -177,6 +179,7 @@ transLValue :: LValue -> Result
 transLValue x = case x of
   LVar id  -> failure x
   LArrEl id exp  -> failure x
+  LTuple ids  -> failure x
 
 
 transConstant_expression :: Constant_expression -> Result

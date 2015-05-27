@@ -24,7 +24,8 @@ data Env = Env {
 		fEnv :: FEnv
 	}
 
-data Val = INT Int | BOOL Bool | STRING String | ARR [Val] deriving (Show, Eq, Ord)
+data Val = INT Int | BOOL Bool | STRING String | ARR [Val] |
+			TUPLE [Val] deriving (Show, Eq, Ord)
 
 checkTypeCompM :: Val -> Val -> Semantics ()
 checkTypeCompM (INT _) (INT _) = return ()

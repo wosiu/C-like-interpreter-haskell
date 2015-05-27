@@ -80,6 +80,9 @@ instance Print Double where
 
 instance Print Ident where
   prt _ (Ident i) = doc (showString ( i))
+  prtList es = case es of
+   [x] -> (concatD [prt 0 x])
+   x:xs -> (concatD [prt 0 x , doc (showString ",") , prt 0 xs])
 
 
 
@@ -117,7 +120,11 @@ instance Print Type_specifier where
    Tint  -> prPrec i 0 (concatD [doc (showString "int")])
    Tstring  -> prPrec i 0 (concatD [doc (showString "string")])
    Tauto  -> prPrec i 0 (concatD [doc (showString "auto")])
+   Ttuple type_specifiers -> prPrec i 0 (concatD [prt 0 type_specifiers])
 
+  prtList es = case es of
+   [x] -> (concatD [prt 0 x])
+   x:xs -> (concatD [prt 0 x , doc (showString ",") , prt 0 xs])
 
 instance Print Dec_base where
   prt i e = case e of
@@ -239,6 +246,7 @@ instance Print Exp where
    Efunkpar id exps -> prPrec i 17 (concatD [prt 0 id , doc (showString "(") , prt 2 exps , doc (showString ")")])
    Elval lvalue -> prPrec i 17 (concatD [prt 0 lvalue])
    Econst constant -> prPrec i 17 (concatD [prt 0 constant])
+   Etuple exps -> prPrec i 18 (concatD [doc (showString "(") , prt 2 exps , doc (showString ")")])
 
   prtList es = case es of
    [x] -> (concatD [prt 2 x])
@@ -261,6 +269,7 @@ instance Print LValue where
   prt i e = case e of
    LVar id -> prPrec i 0 (concatD [prt 0 id])
    LArrEl id exp -> prPrec i 0 (concatD [prt 0 id , doc (showString "[") , prt 0 exp , doc (showString "]")])
+   LTuple ids -> prPrec i 0 (concatD [doc (showString "(") , prt 0 ids , doc (showString ")")])
 
 
 instance Print Constant_expression where

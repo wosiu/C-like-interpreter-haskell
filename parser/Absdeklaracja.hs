@@ -30,6 +30,7 @@ data Type_specifier =
  | Tint
  | Tstring
  | Tauto
+ | Ttuple [Type_specifier]
   deriving (Eq,Ord,Show)
 
 data Dec_base =
@@ -128,6 +129,7 @@ data Exp =
  | Efunkpar Ident [Exp]
  | Elval LValue
  | Econst Constant
+ | Etuple [Exp]
   deriving (Eq,Ord,Show)
 
 data Constant =
@@ -144,6 +146,7 @@ data CBool =
 data LValue =
    LVar Ident
  | LArrEl Ident Exp
+ | LTuple [Ident]
   deriving (Eq,Ord,Show)
 
 data Constant_expression =

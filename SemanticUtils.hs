@@ -47,6 +47,11 @@ checkType (Ttuple type_specifiers) (TUPLE vals) =
 checkType Tauto _ = True
 checkType _ _ = False
 
+checkTypeM :: Type_specifier -> Val -> Semantics ()
+checkTypeM type_specifier val = do
+	if checkType type_specifier val then return ()
+	else throwError "Inncorrect value type for given type specifier"
+
 specifierToDefaultVal :: Type_specifier -> Val
 specifierToDefaultVal Tbool = BOOL False
 specifierToDefaultVal Tint = INT 0
@@ -196,3 +201,24 @@ resolveFunc ident args = do
 	case jump of
 		RETURN val -> return val
 		_ -> throwError "No return statement on function exit"
+
+
+getArrEl :: Val -> [Int] -> Semantics Val
+getArrEl (ARR arr) (i:dims) = do
+	if (i < length arr) && (i >= 0) then getArrEl (arr !! i) dims
+	else throwError "Index out of bound"
+getArrEl val [] = return val
+getArrEl _ _ = throwError "Wrong array call"
+
+changeArrEl :: Val -> [Int] -> Val -> Semantics Val
+changeArrEl arrV (i:levels) newVal = do
+	case arrV of
+		ARR arr -> do
+			let old = (arr !! i)
+			new <- changeArrEl old levels newVal
+			return $ ARR $ (take i arr) ++ [new] ++ (drop (i+1) arr)
+		_ -> throwError "Cannot pick element from non-array type"
+
+changeArrEl oldVal [] newVal = do
+	_ <- checkTypeCompM oldVal newVal
+	return newVal

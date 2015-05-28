@@ -57,13 +57,13 @@ The symbols used in deklaracja are the following: \\
 
 \begin{tabular}{lll}
 {\symb{;}} &{\symb{\{}} &{\symb{\}}} \\
-{\symb{,}} &{\symb{[}} &{\symb{]}} \\
-{\symb{{$=$}}} &{\symb{(}} &{\symb{)}} \\
-{\symb{:}} &{\symb{{$|$}{$|$}}} &{\symb{\&\&}} \\
-{\symb{{$=$}{$=$}}} &{\symb{!{$=$}}} &{\symb{{$<$}}} \\
-{\symb{{$>$}}} &{\symb{{$<$}{$=$}}} &{\symb{{$>$}{$=$}}} \\
-{\symb{{$+$}}} &{\symb{{$-$}}} &{\symb{*}} \\
-{\symb{/}} &{\symb{{$+$}{$+$}}} &{\symb{{$-$}{$-$}}} \\
+{\symb{,}} &{\symb{{$=$}}} &{\symb{(}} \\
+{\symb{)}} &{\symb{:}} &{\symb{{$|$}{$|$}}} \\
+{\symb{\&\&}} &{\symb{{$=$}{$=$}}} &{\symb{!{$=$}}} \\
+{\symb{{$<$}}} &{\symb{{$>$}}} &{\symb{{$<$}{$=$}}} \\
+{\symb{{$>$}{$=$}}} &{\symb{{$+$}}} &{\symb{{$-$}}} \\
+{\symb{*}} &{\symb{/}} &{\symb{{$+$}{$+$}}} \\
+{\symb{{$-$}{$-$}}} &{\symb{[}} &{\symb{]}} \\
 {\symb{!}} &{\symb{*{$=$}}} &{\symb{/{$=$}}} \\
 {\symb{{$+$}{$=$}}} &{\symb{{$-$}{$=$}}} & \\
 \end{tabular}\\
@@ -127,13 +127,12 @@ All other symbols are terminals.\\
 
 \begin{tabular}{lll}
 {\nonterminal{Uninitialized-variable}} & {\arrow}  &{\nonterminal{Dec-base}}  \\
- & {\delimit}  &{\nonterminal{Dec-base}} {\terminal{[}} {\nonterminal{Exp2}} {\terminal{]}}  \\
+ & {\delimit}  &{\nonterminal{Dec-base}} {\nonterminal{ListArrDet}}  \\
 \end{tabular}\\
 
 \begin{tabular}{lll}
 {\nonterminal{Initialized-variable}} & {\arrow}  &{\nonterminal{Dec-base}} {\terminal{{$=$}}} {\nonterminal{Initializer}}  \\
- & {\delimit}  &{\nonterminal{Dec-base}} {\terminal{[}} {\terminal{]}} {\terminal{{$=$}}} {\terminal{\{}} {\nonterminal{ListInitializer}} {\terminal{\}}}  \\
- & {\delimit}  &{\nonterminal{Dec-base}} {\terminal{{$=$}}} {\terminal{\{}} {\nonterminal{ListInitializer}} {\terminal{\}}}  \\
+ & {\delimit}  &{\nonterminal{Dec-base}} {\nonterminal{ListArrDet}} {\terminal{{$=$}}} {\nonterminal{Initializer}}  \\
 \end{tabular}\\
 
 \begin{tabular}{lll}
@@ -277,33 +276,12 @@ All other symbols are terminals.\\
 
 \begin{tabular}{lll}
 {\nonterminal{Exp18}} & {\arrow}  &{\terminal{(}} {\nonterminal{ListExp2}} {\terminal{)}}  \\
+ & {\delimit}  &{\nonterminal{Exp19}}  \\
+\end{tabular}\\
+
+\begin{tabular}{lll}
+{\nonterminal{Exp19}} & {\arrow}  &{\terminal{\{}} {\nonterminal{ListExp2}} {\terminal{\}}}  \\
  & {\delimit}  &{\terminal{(}} {\nonterminal{Exp}} {\terminal{)}}  \\
-\end{tabular}\\
-
-\begin{tabular}{lll}
-{\nonterminal{Constant}} & {\arrow}  &{\nonterminal{CBool}}  \\
- & {\delimit}  &{\nonterminal{Integer}}  \\
- & {\delimit}  &{\nonterminal{String}}  \\
-\end{tabular}\\
-
-\begin{tabular}{lll}
-{\nonterminal{CBool}} & {\arrow}  &{\terminal{true}}  \\
- & {\delimit}  &{\terminal{false}}  \\
-\end{tabular}\\
-
-\begin{tabular}{lll}
-{\nonterminal{LValue}} & {\arrow}  &{\nonterminal{Ident}}  \\
- & {\delimit}  &{\nonterminal{Ident}} {\terminal{[}} {\nonterminal{Exp}} {\terminal{]}}  \\
- & {\delimit}  &{\terminal{(}} {\nonterminal{ListIdent}} {\terminal{)}}  \\
-\end{tabular}\\
-
-\begin{tabular}{lll}
-{\nonterminal{ListIdent}} & {\arrow}  &{\nonterminal{Ident}}  \\
- & {\delimit}  &{\nonterminal{Ident}} {\terminal{,}} {\nonterminal{ListIdent}}  \\
-\end{tabular}\\
-
-\begin{tabular}{lll}
-{\nonterminal{Constant-expression}} & {\arrow}  &{\nonterminal{Exp3}}  \\
 \end{tabular}\\
 
 \begin{tabular}{lll}
@@ -332,6 +310,42 @@ All other symbols are terminals.\\
 
 \begin{tabular}{lll}
 {\nonterminal{Exp14}} & {\arrow}  &{\nonterminal{Exp15}}  \\
+\end{tabular}\\
+
+\begin{tabular}{lll}
+{\nonterminal{Constant}} & {\arrow}  &{\nonterminal{CBool}}  \\
+ & {\delimit}  &{\nonterminal{Integer}}  \\
+ & {\delimit}  &{\nonterminal{String}}  \\
+\end{tabular}\\
+
+\begin{tabular}{lll}
+{\nonterminal{CBool}} & {\arrow}  &{\terminal{true}}  \\
+ & {\delimit}  &{\terminal{false}}  \\
+\end{tabular}\\
+
+\begin{tabular}{lll}
+{\nonterminal{LValue}} & {\arrow}  &{\nonterminal{Ident}}  \\
+ & {\delimit}  &{\nonterminal{Ident}} {\nonterminal{ListArrDet}}  \\
+ & {\delimit}  &{\terminal{(}} {\nonterminal{ListIdent}} {\terminal{)}}  \\
+\end{tabular}\\
+
+\begin{tabular}{lll}
+{\nonterminal{ArrDet}} & {\arrow}  &{\terminal{[}} {\nonterminal{Exp}} {\terminal{]}}  \\
+ & {\delimit}  &{\terminal{[}} {\terminal{]}}  \\
+\end{tabular}\\
+
+\begin{tabular}{lll}
+{\nonterminal{ListIdent}} & {\arrow}  &{\nonterminal{Ident}}  \\
+ & {\delimit}  &{\nonterminal{Ident}} {\terminal{,}} {\nonterminal{ListIdent}}  \\
+\end{tabular}\\
+
+\begin{tabular}{lll}
+{\nonterminal{ListArrDet}} & {\arrow}  &{\nonterminal{ArrDet}}  \\
+ & {\delimit}  &{\nonterminal{ArrDet}} {\nonterminal{ListArrDet}}  \\
+\end{tabular}\\
+
+\begin{tabular}{lll}
+{\nonterminal{Constant-expression}} & {\arrow}  &{\nonterminal{Exp3}}  \\
 \end{tabular}\\
 
 \begin{tabular}{lll}

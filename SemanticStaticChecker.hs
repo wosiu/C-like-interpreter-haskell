@@ -97,6 +97,7 @@ transFunction x = do
 			if all filtr jumps then return env1
 			else throwError "Wrong type of jump statement appears inside function body"
 
+
 deduceReturnSpecifier :: Type_specifier -> [Jump] -> Semantics Type_specifier
 deduceReturnSpecifier type_specifier jumps = do
 	if type_specifier /= Tauto then return type_specifier

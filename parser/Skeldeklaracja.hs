@@ -62,14 +62,13 @@ transVariable x = case x of
 transUninitialized_variable :: Uninitialized_variable -> Result
 transUninitialized_variable x = case x of
   UninitSimpleTypeDec dec_base  -> failure x
-  UninitArr dec_base exp  -> failure x
+  UninitArr dec_base arrdets  -> failure x
 
 
 transInitialized_variable :: Initialized_variable -> Result
 transInitialized_variable x = case x of
   InitSimpleTypeDec dec_base initializer  -> failure x
-  InitArr dec_base initializers  -> failure x
-  InitAutoArr dec_base initializers  -> failure x
+  InitArr dec_base arrdets initializer  -> failure x
 
 
 transInitializer :: Initializer -> Result
@@ -160,6 +159,7 @@ transExp x = case x of
   Elval lvalue  -> failure x
   Econst constant  -> failure x
   Etuple exps  -> failure x
+  Earray exps  -> failure x
 
 
 transConstant :: Constant -> Result
@@ -178,8 +178,14 @@ transCBool x = case x of
 transLValue :: LValue -> Result
 transLValue x = case x of
   LVar id  -> failure x
-  LArrEl id exp  -> failure x
+  LArrEl id arrdets  -> failure x
   LTuple ids  -> failure x
+
+
+transArrDet :: ArrDet -> Result
+transArrDet x = case x of
+  ArrDet exp  -> failure x
+  EmptyArrDet  -> failure x
 
 
 transConstant_expression :: Constant_expression -> Result

@@ -126,13 +126,12 @@ Variable : Initialized_variable { InitDec $1 }
 
 Uninitialized_variable :: { Uninitialized_variable }
 Uninitialized_variable : Dec_base { UninitSimpleTypeDec $1 } 
-  | Dec_base '[' Exp2 ']' { UninitArr $1 $3 }
+  | Dec_base ListArrDet { UninitArr $1 $2 }
 
 
 Initialized_variable :: { Initialized_variable }
 Initialized_variable : Dec_base '=' Initializer { InitSimpleTypeDec $1 $3 } 
-  | Dec_base '[' ']' '=' '{' ListInitializer '}' { InitArr $1 $6 }
-  | Dec_base '=' '{' ListInitializer '}' { InitAutoArr $1 $4 }
+  | Dec_base ListArrDet '=' Initializer { InitArr $1 $2 $4 }
 
 
 Initializer :: { Initializer }
@@ -276,33 +275,12 @@ ListExp2 : Exp2 { (:[]) $1 }
 
 Exp18 :: { Exp }
 Exp18 : '(' ListExp2 ')' { Etuple $2 } 
+  | Exp19 { $1 }
+
+
+Exp19 :: { Exp }
+Exp19 : '{' ListExp2 '}' { Earray $2 } 
   | '(' Exp ')' { $2 }
-
-
-Constant :: { Constant }
-Constant : CBool { Ebool $1 } 
-  | Integer { Eint $1 }
-  | String { Estring $1 }
-
-
-CBool :: { CBool }
-CBool : 'true' { BTrue } 
-  | 'false' { BFalse }
-
-
-LValue :: { LValue }
-LValue : Ident { LVar $1 } 
-  | Ident '[' Exp ']' { LArrEl $1 $3 }
-  | '(' ListIdent ')' { LTuple $2 }
-
-
-ListIdent :: { [Ident] }
-ListIdent : Ident { (:[]) $1 } 
-  | Ident ',' ListIdent { (:) $1 $3 }
-
-
-Constant_expression :: { Constant_expression }
-Constant_expression : Exp3 { Especial $1 } 
 
 
 Exp1 :: { Exp }
@@ -331,6 +309,42 @@ Exp11 : Exp12 { $1 }
 
 Exp14 :: { Exp }
 Exp14 : Exp15 { $1 } 
+
+
+Constant :: { Constant }
+Constant : CBool { Ebool $1 } 
+  | Integer { Eint $1 }
+  | String { Estring $1 }
+
+
+CBool :: { CBool }
+CBool : 'true' { BTrue } 
+  | 'false' { BFalse }
+
+
+LValue :: { LValue }
+LValue : Ident { LVar $1 } 
+  | Ident ListArrDet { LArrEl $1 $2 }
+  | '(' ListIdent ')' { LTuple $2 }
+
+
+ArrDet :: { ArrDet }
+ArrDet : '[' Exp ']' { ArrDet $2 } 
+  | '[' ']' { EmptyArrDet }
+
+
+ListIdent :: { [Ident] }
+ListIdent : Ident { (:[]) $1 } 
+  | Ident ',' ListIdent { (:) $1 $3 }
+
+
+ListArrDet :: { [ArrDet] }
+ListArrDet : ArrDet { (:[]) $1 } 
+  | ArrDet ListArrDet { (:) $1 $2 }
+
+
+Constant_expression :: { Constant_expression }
+Constant_expression : Exp3 { Especial $1 } 
 
 
 Unary_operator :: { Unary_operator }

@@ -36,12 +36,12 @@ InitDec.               Variable ::= Initialized_variable ;
 UninitDec.             Variable ::= Uninitialized_variable ;
 
 UninitSimpleTypeDec.   Uninitialized_variable ::= Dec_base ;
-UninitArr.             Uninitialized_variable ::= Dec_base "[" Exp2 "]" ;
+-- in semantic check all ArrDet have expressions
+UninitArr.             Uninitialized_variable ::= Dec_base [ArrDet] ;
 
-InitSimpleTypeDec.     Initialized_variable ::= Dec_base "=" Initializer;
-InitArr.               Initialized_variable ::= Dec_base "[" "]" "=" "{" [Initializer] "}" ;
--- in semantic allow only: auto ident = { 1, 2, 3 }
-InitAutoArr.           Initialized_variable ::= Dec_base "=" "{" [Initializer] "}" ;
+InitSimpleTypeDec.     Initialized_variable ::= Dec_base "=" Initializer ;
+-- in semantic check all ArrDet are empty, check Initliazer is array initializer
+InitArr.               Initialized_variable ::= Dec_base [ArrDet] "=" Initializer ;
 
 InitExpr.    Initializer ::= Exp2 ;
 separator nonempty Initializer "," ;
@@ -117,6 +117,9 @@ separator nonempty Exp2 "," ;
 Elval.       Exp17 ::= LValue;
 Econst.      Exp17 ::= Constant;
 Etuple.      Exp18 ::= "(" [Exp2] ")";
+Earray.      Exp19 ::= "{" [Exp2] "}";
+
+coercions Exp 19 ;
 
 Ebool.         Constant ::= CBool;
 Eint.          Constant ::= Integer;
@@ -126,32 +129,17 @@ BTrue.	CBool ::= "true";
 BFalse.	CBool ::= "false";
 
 LVar.	LValue ::= Ident;
-LArrEl.	LValue ::= Ident "[" Exp "]";
+LArrEl.	LValue ::= Ident [ArrDet];
 LTuple. LValue ::= "(" [Ident] ")";
 
+ArrDet.      ArrDet ::= "[" Exp "]";
+EmptyArrDet. ArrDet ::= "[""]";
+
 separator nonempty Ident ",";
+separator nonempty ArrDet "";
 
 Especial. Constant_expression ::= Exp3;
 
---_. Exp   ::= Exp2 ;
---_. Exp2  ::= Exp3 ;
---_. Exp3  ::= Exp4 ;
---_. Exp4  ::= Exp5 ;
---_. Exp5  ::= Exp6 ;
---_. Exp6  ::= Exp7 ;
---_. Exp7  ::= Exp8 ;
---_. Exp8  ::= Exp9 ;
---_. Exp9  ::= Exp10 ;
---_. Exp10 ::= Exp11 ;
---_. Exp11 ::= Exp12 ;
---_. Exp12 ::= Exp13 ;
---_. Exp13 ::= Exp14 ;
---_. Exp14 ::= Exp15 ;
---_. Exp15 ::= Exp16 ;
---_. Exp16 ::= Exp17 ;
---_. Exp17 ::= "(" Exp ")" ;
-
-coercions Exp 18 ;
 
 Plus.        Unary_operator ::= "+" ;
 Negative.    Unary_operator ::= "-" ;

@@ -70,7 +70,7 @@ transExp x = do
 			(a, b) <- _transPairExp exp1 exp2
 			return $ BOOL $ a < b
 		Egrthen exp1 exp2 -> do
-			(a, b) <-  _transPairExp exp1 exp2
+			(a, b) <- _transPairExp exp1 exp2
 			return $ BOOL $ a > b
 		Ele exp1 exp2 -> do
 			(a, b) <- _transPairExp exp1 exp2
@@ -114,6 +114,10 @@ transExp x = do
 		Etuple exps -> do
 			vals <- mapM transExp exps
 			return $ TUPLE vals
+		Earray exps -> do
+			(x:xs) <- mapM transExp exps
+			_ <- mapM_ (checkTypeCompM x) xs
+			return $ ARR (x:xs)
 
 
 transExp_or_empty :: Exp_or_empty -> Semantics Val
@@ -143,21 +147,29 @@ transUninitialized_variable x = do
 				Tint -> putVarDecl ident $ INT 0
 				Tstring -> putVarDecl ident $ STRING ""
 				Tauto -> throwError "Uninitialized auto variable - cannot deduce variable type"
-		UninitArr dec_base exp -> do
+		UninitArr dec_base arrdets -> do
 			let (DecBase type_specifier ident) = dec_base
-			sizeVal <- transExp exp
-			case sizeVal of
-				INT size -> do
-					if size <= 0 then throwError "Array size must be greater than 0"
-					else case type_specifier of
-						Tbool -> putVarDecl ident $ ARR $ _fillList (BOOL False) size
-						Tint -> putVarDecl ident $ ARR $ _fillList (INT 0) size
-						Tstring -> putVarDecl ident $ ARR $ _fillList (STRING "") size
-				_ -> throwError "Bad type of array size"
+			sizes <- mapM getDimSize arrdets
+			let arr = foldr (\t a -> ARR $ replicate t a) (specifierToDefaultVal type_specifier) sizes
+			putVarDecl ident arr
 
-_fillList :: Val -> Int -> [Val]
-_fillList val 0 = []
-_fillList val size = val:(_fillList val (size-1))
+
+getDimSize :: ArrDet -> Semantics Int
+getDimSize x = do
+	n <- getDimIt x
+	if n > 0 then return n
+	else throwError "Array size must be greater than 0"
+
+getDimIt :: ArrDet -> Semantics Int
+getDimIt x = case x of
+	ArrDet exp -> do
+		size <- transExp exp
+		case size of
+			INT s -> do
+				if s >= 0 then return s
+				else throwError "Wrong array call"
+			_ -> throwError "Invalid array size expression"
+	_ -> throwError "Invalid array size expression"
 
 
 transInitialized_variable :: Initialized_variable -> Semantics Env
@@ -166,25 +178,25 @@ transInitialized_variable x = do
 		InitSimpleTypeDec dec_base initializer -> do
 			val <- transInitializer initializer
 			let (DecBase type_specifier ident) = dec_base
+			-- also fine for auto arrays
 			if checkType type_specifier val then
 				putVarDecl ident val
 			else throwError "Invalid type of initializer"
-		InitArr dec_base initializers -> do
+		InitArr dec_base arrdets initializer -> do
 			let (DecBase type_specifier ident) = dec_base
-			elements <- mapM transInitializer initializers
+			content <- transInitializer initializer
+			_checkArrType type_specifier arrdets content
 			if type_specifier == Tauto then
-				transInitialized_variable $ InitAutoArr dec_base initializers
-			else if all (checkType type_specifier) elements then
-				putVarDecl ident $ ARR elements
-			else throwError "Invalid type of array initializing element"
-		InitAutoArr dec_base initializers -> do
-			let (DecBase type_specifier ident) = dec_base
-			if (type_specifier == Tauto) then do
-				elements <- mapM transInitializer initializers
-				let (x:xs) = elements
-				foldM_ (\acc e -> checkTypeCompM x e) () xs
-				putVarDecl ident $ ARR elements
-			else throwError "Invalid initialization of simple type"
+				throwError "Cannot resolve auto with additional dimension specifier"
+			else putVarDecl ident content
+
+_checkArrType :: Type_specifier -> [ArrDet] -> Val -> Semantics ()
+_checkArrType type_specifier (x:xs) (ARR arr) =
+	-- check only head, we have sure here that others are the same
+	_checkArrType type_specifier xs (head arr)
+_checkArrType type_specifier [] (ARR arr) = throwError "Incorrect number of array dimensions"
+_checkArrType type_specifier [] val = checkTypeM type_specifier val
+_checkArrType _ _ _ = throwError "Incorrect number of array dimensions"
 
 transInitializer :: Initializer -> Semantics Val
 transInitializer x = do
@@ -227,37 +239,25 @@ transUnary_operator x val = case x of
 -- change value of variable under ident using given function and return new value
 mapIntLVal :: LValue -> (Int -> Int) -> Semantics Val
 mapIntLVal (LVar ident) fun = mapIntVar ident fun
-mapIntLVal (LArrEl ident exp ) fun = do
-	iVal <- transExp exp
-	val <- takeValueFromIdent ident
-	case (val, iVal) of
-		(ARR arr, INT i) -> do
-			if (i < length arr) && (i >= 0) then do
-				let (INT oldVal) = (arr !! i)
-				let newVal = INT $ fun oldVal
-				let newArr = (take i arr) ++ [newVal] ++ (drop (i+1) arr)
-				changeVarValue ident (ARR newArr)
-				return newVal
-			else throwError $ "Index out of bound"
-		_ -> throwError $ "Bad array call"
+mapIntLVal (LArrEl ident arrdets) fun = do
+	levels <- mapM getDimIt arrdets
+	oldArr <- takeValueFromIdent ident
+	(INT oldVal) <- getArrEl oldArr levels
+	let newVal = INT $ fun oldVal
+	newArr <- changeArrEl oldArr levels newVal
+	changeVarValue ident newArr
+	return newVal
 
 
 changeLVal :: LValue -> Val -> Semantics ()
 changeLVal lvalue val = do
 	case lvalue of
 		LVar ident -> changeVarValue ident val
-		LArrEl ident exp -> do
-			iVal <- transExp exp
-			arrVal <- takeValueFromIdent ident
-			case (arrVal, iVal) of
-				(ARR arr, INT i) -> do
-					if (i < length arr) && (i >= 0) then do
-						let oldVal = (arr !! i)
-						_ <- checkTypeCompM oldVal val
-						let newArr = (take i arr) ++ [val] ++ (drop (i+1) arr)
-						changeVarValue ident (ARR newArr)
-					else throwError $ "Index out of bound"
-				_ -> throwError $ "Bad array call"
+		LArrEl ident arrdets -> do
+			levels <- mapM getDimIt arrdets
+			oldArr <- takeValueFromIdent ident
+			newArr <- changeArrEl oldArr levels val
+			changeVarValue ident newArr
 		LTuple idents -> do
 			case val of
 				TUPLE vals -> do
@@ -270,14 +270,10 @@ transLValue :: LValue -> Semantics Val
 transLValue x = do
 	case x of
 		LVar ident -> takeValueFromIdent ident
-		LArrEl ident exp -> do
-			ival <- transExp exp
+		LArrEl ident arrdets -> do
+			levels <- mapM getDimIt arrdets
 			arr <- takeValueFromIdent ident
-			case (arr, ival) of
-				(ARR list, INT i) -> do
-					if (i >= 0) && (i < length list) then return $ list !! i
-					else throwError "Index out of bound"
-				_ -> throwError "Incorrect array element call"
+			getArrEl arr levels
 
 
 transConstant :: Constant -> Val

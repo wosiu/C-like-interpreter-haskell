@@ -39,11 +39,11 @@ The reserved words used in deklaracja are the following:
 
 The symbols used in deklaracja are the following:
   | ; | { | } | ,
-  | [ | ] | = | (
-  | ) | : | || | &&
-  | == | != | < | >
-  | <= | >= | + | -
-  | * | / | ++ | --
+  | = | ( | ) | :
+  | || | && | == | !=
+  | < | > | <= | >=
+  | + | - | * | /
+  | ++ | -- | [ | ]
   | ! | *= | /= | +=
   | -= |  |  | 
 
@@ -78,10 +78,9 @@ All other symbols are terminals.
   | //Variable// | -> | //Initialized_variable// 
   |  |  **|**  | //Uninitialized_variable// 
   | //Uninitialized_variable// | -> | //Dec_base// 
-  |  |  **|**  | //Dec_base// ``[`` //Exp2// ``]`` 
+  |  |  **|**  | //Dec_base// //[ArrDet]// 
   | //Initialized_variable// | -> | //Dec_base// ``=`` //Initializer// 
-  |  |  **|**  | //Dec_base// ``[`` ``]`` ``=`` ``{`` //[Initializer]// ``}`` 
-  |  |  **|**  | //Dec_base// ``=`` ``{`` //[Initializer]// ``}`` 
+  |  |  **|**  | //Dec_base// //[ArrDet]// ``=`` //Initializer// 
   | //Initializer// | -> | //Exp2// 
   | //[Initializer]// | -> | //Initializer// 
   |  |  **|**  | //Initializer// ``,`` //[Initializer]// 
@@ -147,18 +146,9 @@ All other symbols are terminals.
   | //[Exp2]// | -> | //Exp2// 
   |  |  **|**  | //Exp2// ``,`` //[Exp2]// 
   | //Exp18// | -> | ``(`` //[Exp2]// ``)`` 
+  |  |  **|**  | //Exp19// 
+  | //Exp19// | -> | ``{`` //[Exp2]// ``}`` 
   |  |  **|**  | ``(`` //Exp// ``)`` 
-  | //Constant// | -> | //CBool// 
-  |  |  **|**  | //Integer// 
-  |  |  **|**  | //String// 
-  | //CBool// | -> | ``true`` 
-  |  |  **|**  | ``false`` 
-  | //LValue// | -> | //Ident// 
-  |  |  **|**  | //Ident// ``[`` //Exp// ``]`` 
-  |  |  **|**  | ``(`` //[Ident]// ``)`` 
-  | //[Ident]// | -> | //Ident// 
-  |  |  **|**  | //Ident// ``,`` //[Ident]// 
-  | //Constant_expression// | -> | //Exp3// 
   | //Exp1// | -> | //Exp2// 
   | //Exp3// | -> | //Exp4// 
   | //Exp6// | -> | //Exp7// 
@@ -166,6 +156,21 @@ All other symbols are terminals.
   | //Exp8// | -> | //Exp9// 
   | //Exp11// | -> | //Exp12// 
   | //Exp14// | -> | //Exp15// 
+  | //Constant// | -> | //CBool// 
+  |  |  **|**  | //Integer// 
+  |  |  **|**  | //String// 
+  | //CBool// | -> | ``true`` 
+  |  |  **|**  | ``false`` 
+  | //LValue// | -> | //Ident// 
+  |  |  **|**  | //Ident// //[ArrDet]// 
+  |  |  **|**  | ``(`` //[Ident]// ``)`` 
+  | //ArrDet// | -> | ``[`` //Exp// ``]`` 
+  |  |  **|**  | ``[`` ``]`` 
+  | //[Ident]// | -> | //Ident// 
+  |  |  **|**  | //Ident// ``,`` //[Ident]// 
+  | //[ArrDet]// | -> | //ArrDet// 
+  |  |  **|**  | //ArrDet// //[ArrDet]// 
+  | //Constant_expression// | -> | //Exp3// 
   | //Unary_operator// | -> | ``+`` 
   |  |  **|**  | ``-`` 
   |  |  **|**  | ``!`` 

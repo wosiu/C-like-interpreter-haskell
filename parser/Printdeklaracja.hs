@@ -140,14 +140,13 @@ instance Print Variable where
 instance Print Uninitialized_variable where
   prt i e = case e of
    UninitSimpleTypeDec dec_base -> prPrec i 0 (concatD [prt 0 dec_base])
-   UninitArr dec_base exp -> prPrec i 0 (concatD [prt 0 dec_base , doc (showString "[") , prt 2 exp , doc (showString "]")])
+   UninitArr dec_base arrdets -> prPrec i 0 (concatD [prt 0 dec_base , prt 0 arrdets])
 
 
 instance Print Initialized_variable where
   prt i e = case e of
    InitSimpleTypeDec dec_base initializer -> prPrec i 0 (concatD [prt 0 dec_base , doc (showString "=") , prt 0 initializer])
-   InitArr dec_base initializers -> prPrec i 0 (concatD [prt 0 dec_base , doc (showString "[") , doc (showString "]") , doc (showString "=") , doc (showString "{") , prt 0 initializers , doc (showString "}")])
-   InitAutoArr dec_base initializers -> prPrec i 0 (concatD [prt 0 dec_base , doc (showString "=") , doc (showString "{") , prt 0 initializers , doc (showString "}")])
+   InitArr dec_base arrdets initializer -> prPrec i 0 (concatD [prt 0 dec_base , prt 0 arrdets , doc (showString "=") , prt 0 initializer])
 
 
 instance Print Initializer where
@@ -247,6 +246,7 @@ instance Print Exp where
    Elval lvalue -> prPrec i 17 (concatD [prt 0 lvalue])
    Econst constant -> prPrec i 17 (concatD [prt 0 constant])
    Etuple exps -> prPrec i 18 (concatD [doc (showString "(") , prt 2 exps , doc (showString ")")])
+   Earray exps -> prPrec i 19 (concatD [doc (showString "{") , prt 2 exps , doc (showString "}")])
 
   prtList es = case es of
    [x] -> (concatD [prt 2 x])
@@ -268,9 +268,18 @@ instance Print CBool where
 instance Print LValue where
   prt i e = case e of
    LVar id -> prPrec i 0 (concatD [prt 0 id])
-   LArrEl id exp -> prPrec i 0 (concatD [prt 0 id , doc (showString "[") , prt 0 exp , doc (showString "]")])
+   LArrEl id arrdets -> prPrec i 0 (concatD [prt 0 id , prt 0 arrdets])
    LTuple ids -> prPrec i 0 (concatD [doc (showString "(") , prt 0 ids , doc (showString ")")])
 
+
+instance Print ArrDet where
+  prt i e = case e of
+   ArrDet exp -> prPrec i 0 (concatD [doc (showString "[") , prt 0 exp , doc (showString "]")])
+   EmptyArrDet  -> prPrec i 0 (concatD [doc (showString "[") , doc (showString "]")])
+
+  prtList es = case es of
+   [x] -> (concatD [prt 0 x])
+   x:xs -> (concatD [prt 0 x , prt 0 xs])
 
 instance Print Constant_expression where
   prt i e = case e of

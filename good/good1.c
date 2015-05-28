@@ -128,7 +128,6 @@ print(a1);
 print(a2);
 print(a3);
 
-auto ar1[] = {1, 2, 3};
 auto ar2 = {1, 2, 3};
 
 /////////////
@@ -188,4 +187,24 @@ auto af3() {
 }
 
 bool bfa = af3();
+
+
+////////////////////////
+int arr2D[][] = {{1,2,3},{4,5}};
+print (arr2D[0][2]);
+print (arr2D[1][1]);
+
+bool arr3D[2][2][2];
+arr3D[1][1][0] = false;
+arr3D[1][1][1] = true;
+print(arr3D[1][1]);
+
+auto auto2d = {{1,2,3},{4,5}};
+print (auto2d[1][0]);
+
+int arr2D2[2][2];
+int arr1D[] = {1,2,3};
+arr2D2[1] = arr1D;
+print( arr2D2 );
+
 

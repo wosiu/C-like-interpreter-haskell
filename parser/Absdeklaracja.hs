@@ -44,13 +44,12 @@ data Variable =
 
 data Uninitialized_variable =
    UninitSimpleTypeDec Dec_base
- | UninitArr Dec_base Exp
+ | UninitArr Dec_base [ArrDet]
   deriving (Eq,Ord,Show)
 
 data Initialized_variable =
    InitSimpleTypeDec Dec_base Initializer
- | InitArr Dec_base [Initializer]
- | InitAutoArr Dec_base [Initializer]
+ | InitArr Dec_base [ArrDet] Initializer
   deriving (Eq,Ord,Show)
 
 data Initializer =
@@ -130,6 +129,7 @@ data Exp =
  | Elval LValue
  | Econst Constant
  | Etuple [Exp]
+ | Earray [Exp]
   deriving (Eq,Ord,Show)
 
 data Constant =
@@ -145,8 +145,13 @@ data CBool =
 
 data LValue =
    LVar Ident
- | LArrEl Ident Exp
+ | LArrEl Ident [ArrDet]
  | LTuple [Ident]
+  deriving (Eq,Ord,Show)
+
+data ArrDet =
+   ArrDet Exp
+ | EmptyArrDet
   deriving (Eq,Ord,Show)
 
 data Constant_expression =

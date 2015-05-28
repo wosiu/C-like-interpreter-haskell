@@ -25,13 +25,15 @@ data Env = Env {
 	}
 
 data Val = INT Int | BOOL Bool | STRING String | ARR [Val] |
-			TUPLE [Val] deriving (Show, Eq, Ord)
+			TUPLE [Val] | PASS deriving (Show, Eq, Ord)
 
 checkTypeCompM :: Val -> Val -> Semantics ()
 checkTypeCompM (INT _) (INT _) = return ()
 checkTypeCompM (BOOL _) (BOOL _) = return ()
 checkTypeCompM (STRING _) (STRING _) = return ()
 checkTypeCompM (ARR arr1) (ARR arr2) = checkTypeCompM (head arr1) (head arr2)
+checkTypeCompM _ PASS = return ()
+checkTypeCompM PASS _ = return ()
 checkTypeCompM _ _ = throwError "Incompatible types"
 
 checkType :: Type_specifier -> Val -> Bool
@@ -51,7 +53,7 @@ specifierToDefaultVal Tint = INT 0
 specifierToDefaultVal Tstring = STRING ""
 specifierToDefaultVal (Ttuple type_specifiers) =
 	TUPLE $ Prelude.map specifierToDefaultVal type_specifiers
-specifierToDefaultVal Tauto = INT 0
+specifierToDefaultVal Tauto = PASS
 
 valToSpecifier :: Val -> Type_specifier
 valToSpecifier (BOOL _) = Tbool

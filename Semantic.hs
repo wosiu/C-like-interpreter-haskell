@@ -180,6 +180,7 @@ transPrint_stm (SPrint exp) = do
 		STRING a -> printString a
 		ARR arr -> printValue arr
 		TUPLE vals -> printValue vals
+		PASS -> printString "VOID"
 	return NOTHING
 
 

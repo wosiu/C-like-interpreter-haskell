@@ -78,13 +78,19 @@ transFunction x = do
 			let paramsIdents = map snd argIdents
 			let defaultValues = map specifierToDefaultVal $ map fst argIdents
 			--env1 <- putFuncDef type_specifier ident argIdents (return $ RETURN $ BOOL False)
-			env1 <- putFuncDef type_specifier ident argIdents (return NOTHING)
+			env1 <- putFuncDef type_specifier ident argIdents (return $ RETURN PASS)
 			env2 <- local (const env1) (putMultiVarDecl paramsIdents defaultValues)
 			jumps <- local (const env2) (transNamespace namespace_stm)
 
 			-- deduce auto if appeared in function signature
 			type_specifier <- deduceReturnSpecifier type_specifier jumps
-			-- check all jumps - all must be the same type
+			-- fix func declaration with resolved auto if given
+			env1 <- putFuncDef type_specifier ident argIdents
+				(return $ RETURN $ specifierToDefaultVal type_specifier)
+			-- check function body one more time (as there might be recursion in it, which we omitted)
+			env2 <- local (const env1) (putMultiVarDecl paramsIdents defaultValues)
+			jumps <- local (const env2) (transNamespace namespace_stm)
+
 			let
 				filtr (RETURN val) = checkType type_specifier val
 				filtr _ = False -- should not be break, continue as well

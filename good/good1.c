@@ -138,7 +138,7 @@ auto fauto1() {
 print(fauto1());
 
 auto fauto2() {}
-print(fauto2()); //void functions by default returns 0
+print(fauto2()); //void functions by default returns string VOID
 
 /////////////
 bool noreturn() {}
@@ -165,6 +165,14 @@ int,bool tupleFunc() {
 print(t1);
 print(t2);
 
+auto af() {
+	return true;
+}
+bool a;
+a = af();
+
+
+int t1; bool t2;
 auto autoTupleFunc() { 
 	return (2,false); 
 }
@@ -173,4 +181,17 @@ auto autoTupleFunc() {
 print(t1);
 print(t2);
 
+//// static check bug fixed:
+
+auto af2() {
+	bool a ;
+	a = af2();
+	return true;
+}
+
+auto af3() {
+	return true;
+}
+
+bool bfa = af3();
 

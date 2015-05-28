@@ -106,16 +106,6 @@ deduceReturnSpecifier type_specifier jumps = do
 		(jump:xs) -> throwError $ show jump ++ " on the function exit"
 		[] -> return $ Tint
 
---
---resolveReturnAuto :: Namespace -> Semantics Type_specifier
---resolveReturnAuto namespace_stm = do
---	jumps <- extractJumps namespace_stm
---	-- no 'return' in function body - choose whatever, e.g. int
---	if null jumps then return Cint
---	else case fst jumps of
---		RETURN val -> return $ valToSpecifier val
---		jump -> throwError $ show jump " on the exit, while RETURN expected"
-
 
 transStm :: Stm -> Semantics [Jump]
 transStm x = do

@@ -158,18 +158,12 @@ print(t1);
 print(t2);
 print(t3);
 
-int,bool tupleFunc() { 
+int,bool tupleFunc() {
 	return (1,true); 
 }
 (t1,t2) = tupleFunc();
 print(t1);
 print(t2);
-
-auto af() {
-	return true;
-}
-bool a;
-a = af();
 
 
 int t1; bool t2;
@@ -181,7 +175,7 @@ auto autoTupleFunc() {
 print(t1);
 print(t2);
 
-//// static check bug fixed:
+//// static check of auto func decl - bug fixed:
 
 auto af2() {
 	bool a ;

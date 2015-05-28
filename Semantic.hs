@@ -179,6 +179,7 @@ transPrint_stm (SPrint exp) = do
 		BOOL a -> printValue a
 		STRING a -> printString a
 		ARR arr -> printValue arr
+		TUPLE vals -> printValue vals
 	return NOTHING
 
 

@@ -157,3 +157,20 @@ auto autoTuple = (6, false, "auto tuples are even more cool!");
 print(t1);
 print(t2);
 print(t3);
+
+int,bool tupleFunc() { 
+	return (1,true); 
+}
+(t1,t2) = tupleFunc();
+print(t1);
+print(t2);
+
+auto autoTupleFunc() { 
+	return (2,false); 
+}
+(t1,t2) = autoTupleFunc();
+
+print(t1);
+print(t2);
+
+

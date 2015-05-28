@@ -263,7 +263,7 @@ changeLVal lvalue val = do
 				TUPLE vals -> do
 					if length idents == length vals then zipWithM_ changeVarValue idents vals
 					else throwError $ "Incorrect number of elements assigned to tuple"
-				_ -> throwError $ "Wrong tuple assignment"
+				_ -> throwError $ "Wrong tuple assignment: " ++ show val
 
 
 transLValue :: LValue -> Semantics Val

@@ -77,13 +77,13 @@ transFunction x = do
 			argIdents <- mapM transParam params
 			let paramsIdents = map snd argIdents
 			let defaultValues = map specifierToDefaultVal $ map fst argIdents
+			--env1 <- putFuncDef type_specifier ident argIdents (return $ RETURN $ BOOL False)
 			env1 <- putFuncDef type_specifier ident argIdents (return NOTHING)
 			env2 <- local (const env1) (putMultiVarDecl paramsIdents defaultValues)
 			jumps <- local (const env2) (transNamespace namespace_stm)
 
 			-- deduce auto if appeared in function signature
 			type_specifier <- deduceReturnSpecifier type_specifier jumps
-
 			-- check all jumps - all must be the same type
 			let
 				filtr (RETURN val) = checkType type_specifier val
@@ -95,7 +95,8 @@ deduceReturnSpecifier :: Type_specifier -> [Jump] -> Semantics Type_specifier
 deduceReturnSpecifier type_specifier jumps = do
 	if type_specifier /= Tauto then return type_specifier
 	else case jumps of
-		((RETURN val):xs) -> return $ valToSpecifier val
+		((RETURN val):xs) -> do
+			return $ valToSpecifier val
 		(jump:xs) -> throwError $ show jump ++ " on the function exit"
 		[] -> return $ Tint
 

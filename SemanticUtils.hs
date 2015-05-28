@@ -38,19 +38,26 @@ checkType :: Type_specifier -> Val -> Bool
 checkType Tbool (BOOL _) = True
 checkType Tint (INT _) = True
 checkType Tstring (STRING _) = True
+checkType (Ttuple type_specifiers) (TUPLE vals) =
+	if length type_specifiers == length vals then
+		all id $ zipWith checkType type_specifiers vals
+	else False
 checkType Tauto _ = True
 checkType _ _ = False
 
 specifierToDefaultVal :: Type_specifier -> Val
 specifierToDefaultVal Tbool = BOOL False
 specifierToDefaultVal Tint = INT 0
-specifierToDefaultVal Tauto = INT 0
 specifierToDefaultVal Tstring = STRING ""
+specifierToDefaultVal (Ttuple type_specifiers) =
+	TUPLE $ Prelude.map specifierToDefaultVal type_specifiers
+specifierToDefaultVal Tauto = INT 0
 
 valToSpecifier :: Val -> Type_specifier
 valToSpecifier (BOOL _) = Tbool
 valToSpecifier (INT _) = Tint
 valToSpecifier (STRING _) = Tstring
+valToSpecifier (TUPLE vals) = Ttuple $ Prelude.map valToSpecifier vals
 
 
 instance Show Env where

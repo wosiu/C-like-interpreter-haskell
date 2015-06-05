@@ -42,8 +42,10 @@ main = do
 runProgram :: Program -> Semantics Env
 runProgram program = do
 	env <- ask
+	state <- get
 	-- comment below line to turn off static type checking of whole code
-	-- staticCheck program
+	_ <- local (const env) (staticCheck program)
+	put state
 	local (const env) (transProgram program)
 
 

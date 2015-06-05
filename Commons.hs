@@ -95,7 +95,7 @@ transExp x = do
 			if b == 0 then throwError "Division by zero"
 			else return $ INT $ div a b
 		Epreinc lvalue -> mapIntLVal lvalue $ (+) 1
-		Epredec lvalue -> mapIntLVal lvalue $ (-) 1
+		Epredec lvalue -> mapIntLVal lvalue $ flip (-) 1
 		Epreop unary_operator exp -> do
 			a <- transExp exp
 			transUnary_operator unary_operator a
@@ -103,7 +103,7 @@ transExp x = do
 			(INT a) <- mapIntLVal lvalue $ (+) 1
 			return $ INT (a - 1)
 		Epostdec lvalue -> do
-			(INT a) <- mapIntLVal lvalue $ (-) 1
+			(INT a) <- mapIntLVal lvalue $ flip (-) 1
 			return $ INT (a + 1)
 		Efunk ident -> resolveFunc ident []
 		Efunkpar ident exps -> do

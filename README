@@ -10,6 +10,7 @@ Jesli nie podamy argumentow, interpreter odpali sie w trybie pięknej powłoki
 - deklaracja auto (zarówno dla typów prostych, tablic i funkcji)
 - krotki z przypisaniem (także mozliwość zwracania krotek z funckji, dziala takze z auto)
 - tablice dowolnego typu wielowymiarowe (przy zachowaniu dzialania auto)
+- możliwość wywołania funkcji z argumentami przez referencje a nie kopie 
 
 3. Przykładowe wejścia:
 Przykładwe wejścia do interpretera w katalogach: good oraz bad

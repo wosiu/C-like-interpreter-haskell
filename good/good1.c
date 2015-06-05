@@ -207,4 +207,14 @@ int arr1D[] = {1,2,3};
 arr2D2[1] = arr1D;
 print( arr2D2 );
 
+///////////////////////
+a = 0;
+b = 0;
+int rf(int q, int w) { q++; }
+rf(a&, b);
+print(a);
+print(b);
+
+
+
 

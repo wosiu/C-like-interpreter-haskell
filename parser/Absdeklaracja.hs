@@ -127,6 +127,7 @@ data Exp =
  | Efunk Ident
  | Efunkpar Ident [Exp]
  | Elval LValue
+ | Eref Ident
  | Econst Constant
  | Etuple [Exp]
  | Earray [Exp]

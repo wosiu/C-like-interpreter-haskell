@@ -110,6 +110,9 @@ transExp x = do
 			args <- mapM transExp exps
 			resolveFunc ident args
 		Elval lvalue -> transLValue lvalue
+		Eref ident -> do
+			loc <- takeLocation ident
+			return $ REF loc
 		Econst constant -> return $ transConstant constant
 		Etuple exps -> do
 			vals <- mapM transExp exps

@@ -157,6 +157,7 @@ transExp x = case x of
   Efunk id  -> failure x
   Efunkpar id exps  -> failure x
   Elval lvalue  -> failure x
+  Eref id  -> failure x
   Econst constant  -> failure x
   Etuple exps  -> failure x
   Earray exps  -> failure x

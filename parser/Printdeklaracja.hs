@@ -244,6 +244,7 @@ instance Print Exp where
    Efunk id -> prPrec i 17 (concatD [prt 0 id , doc (showString "(") , doc (showString ")")])
    Efunkpar id exps -> prPrec i 17 (concatD [prt 0 id , doc (showString "(") , prt 2 exps , doc (showString ")")])
    Elval lvalue -> prPrec i 17 (concatD [prt 0 lvalue])
+   Eref id -> prPrec i 17 (concatD [prt 0 id , doc (showString "&")])
    Econst constant -> prPrec i 17 (concatD [prt 0 constant])
    Etuple exps -> prPrec i 18 (concatD [doc (showString "(") , prt 2 exps , doc (showString ")")])
    Earray exps -> prPrec i 19 (concatD [doc (showString "{") , prt 2 exps , doc (showString "}")])

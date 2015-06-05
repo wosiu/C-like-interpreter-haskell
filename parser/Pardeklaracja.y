@@ -19,50 +19,51 @@ import ErrM
 %token 
  '!' { PT _ (TS _ 1) }
  '!=' { PT _ (TS _ 2) }
- '&&' { PT _ (TS _ 3) }
- '(' { PT _ (TS _ 4) }
- ')' { PT _ (TS _ 5) }
- '*' { PT _ (TS _ 6) }
- '*=' { PT _ (TS _ 7) }
- '+' { PT _ (TS _ 8) }
- '++' { PT _ (TS _ 9) }
- '+=' { PT _ (TS _ 10) }
- ',' { PT _ (TS _ 11) }
- '-' { PT _ (TS _ 12) }
- '--' { PT _ (TS _ 13) }
- '-=' { PT _ (TS _ 14) }
- '/' { PT _ (TS _ 15) }
- '/=' { PT _ (TS _ 16) }
- ':' { PT _ (TS _ 17) }
- ';' { PT _ (TS _ 18) }
- '<' { PT _ (TS _ 19) }
- '<=' { PT _ (TS _ 20) }
- '=' { PT _ (TS _ 21) }
- '==' { PT _ (TS _ 22) }
- '>' { PT _ (TS _ 23) }
- '>=' { PT _ (TS _ 24) }
- '[' { PT _ (TS _ 25) }
- ']' { PT _ (TS _ 26) }
- 'auto' { PT _ (TS _ 27) }
- 'bool' { PT _ (TS _ 28) }
- 'break' { PT _ (TS _ 29) }
- 'case' { PT _ (TS _ 30) }
- 'continue' { PT _ (TS _ 31) }
- 'default' { PT _ (TS _ 32) }
- 'else' { PT _ (TS _ 33) }
- 'false' { PT _ (TS _ 34) }
- 'for' { PT _ (TS _ 35) }
- 'if' { PT _ (TS _ 36) }
- 'int' { PT _ (TS _ 37) }
- 'print' { PT _ (TS _ 38) }
- 'return' { PT _ (TS _ 39) }
- 'string' { PT _ (TS _ 40) }
- 'switch' { PT _ (TS _ 41) }
- 'true' { PT _ (TS _ 42) }
- 'while' { PT _ (TS _ 43) }
- '{' { PT _ (TS _ 44) }
- '||' { PT _ (TS _ 45) }
- '}' { PT _ (TS _ 46) }
+ '&' { PT _ (TS _ 3) }
+ '&&' { PT _ (TS _ 4) }
+ '(' { PT _ (TS _ 5) }
+ ')' { PT _ (TS _ 6) }
+ '*' { PT _ (TS _ 7) }
+ '*=' { PT _ (TS _ 8) }
+ '+' { PT _ (TS _ 9) }
+ '++' { PT _ (TS _ 10) }
+ '+=' { PT _ (TS _ 11) }
+ ',' { PT _ (TS _ 12) }
+ '-' { PT _ (TS _ 13) }
+ '--' { PT _ (TS _ 14) }
+ '-=' { PT _ (TS _ 15) }
+ '/' { PT _ (TS _ 16) }
+ '/=' { PT _ (TS _ 17) }
+ ':' { PT _ (TS _ 18) }
+ ';' { PT _ (TS _ 19) }
+ '<' { PT _ (TS _ 20) }
+ '<=' { PT _ (TS _ 21) }
+ '=' { PT _ (TS _ 22) }
+ '==' { PT _ (TS _ 23) }
+ '>' { PT _ (TS _ 24) }
+ '>=' { PT _ (TS _ 25) }
+ '[' { PT _ (TS _ 26) }
+ ']' { PT _ (TS _ 27) }
+ 'auto' { PT _ (TS _ 28) }
+ 'bool' { PT _ (TS _ 29) }
+ 'break' { PT _ (TS _ 30) }
+ 'case' { PT _ (TS _ 31) }
+ 'continue' { PT _ (TS _ 32) }
+ 'default' { PT _ (TS _ 33) }
+ 'else' { PT _ (TS _ 34) }
+ 'false' { PT _ (TS _ 35) }
+ 'for' { PT _ (TS _ 36) }
+ 'if' { PT _ (TS _ 37) }
+ 'int' { PT _ (TS _ 38) }
+ 'print' { PT _ (TS _ 39) }
+ 'return' { PT _ (TS _ 40) }
+ 'string' { PT _ (TS _ 41) }
+ 'switch' { PT _ (TS _ 42) }
+ 'true' { PT _ (TS _ 43) }
+ 'while' { PT _ (TS _ 44) }
+ '{' { PT _ (TS _ 45) }
+ '||' { PT _ (TS _ 46) }
+ '}' { PT _ (TS _ 47) }
 
 L_ident  { PT _ (TV $$) }
 L_integ  { PT _ (TI $$) }
@@ -264,6 +265,7 @@ Exp17 :: { Exp }
 Exp17 : Ident '(' ')' { Efunk $1 } 
   | Ident '(' ListExp2 ')' { Efunkpar $1 $3 }
   | LValue { Elval $1 }
+  | Ident '&' { Eref $1 }
   | Constant { Econst $1 }
   | Exp18 { $1 }
 

@@ -25,7 +25,7 @@ data Env = Env {
 	}
 
 data Val = INT Int | BOOL Bool | STRING String | ARR [Val] |
-			TUPLE [Val] | PASS deriving (Show, Eq, Ord)
+			TUPLE [Val] | PASS | REF Loc deriving (Show, Eq, Ord)
 
 checkTypeCompM :: Val -> Val -> Semantics ()
 checkTypeCompM (INT _) (INT _) = return ()
@@ -151,10 +151,26 @@ putVarDecl ident val = do
 		modify (M.insert 0 (INT (newLoc+1)))
 		return Env { vEnv = (M.insert ident newLoc venv), fEnv = fenv }
 
+
+putRefValue :: Ident -> Loc -> Semantics Env
+putRefValue ident loc = do
+	env <- ask
+	let venv = vEnv env
+	let fenv = fEnv env
+	if False && (M.member ident venv) then
+		throwError $ show ident ++ " - already used in scope"
+	else do
+		return Env { vEnv = (M.insert ident loc venv), fEnv = fenv }
+
 putMultiVarDecl :: [Ident] -> [Val] -> Semantics Env
 putMultiVarDecl (ident:idents) (val:vals) = do
-	env <- putVarDecl ident val
-	local (const env) (putMultiVarDecl idents vals)
+	case val of
+		REF loc -> do
+			env <- putRefValue ident loc
+			local (const env) (putMultiVarDecl idents vals)
+		_ -> do
+			env <- putVarDecl ident val
+			local (const env) (putMultiVarDecl idents vals)
 
 putMultiVarDecl [] [] = ask
 
@@ -187,6 +203,9 @@ putFuncDef type_specifier ident params fun = do
 		return env2
 
 checkArgs :: [Type_specifier] -> [Val] -> Semantics ()
+checkArgs (typ:types) ((REF loc):vals) = do
+	val <- takeValueFromLoc loc
+	checkArgs (typ:types) (val:vals)
 checkArgs (typ:types) (val:vals) = do
 	if checkType typ val then checkArgs types vals
 	else throwError "Wrong type of argument in function call"

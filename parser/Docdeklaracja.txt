@@ -43,9 +43,9 @@ The symbols used in deklaracja are the following:
   | || | && | == | !=
   | < | > | <= | >=
   | + | - | * | /
-  | ++ | -- | [ | ]
-  | ! | *= | /= | +=
-  | -= |  |  | 
+  | ++ | -- | & | [
+  | ] | ! | *= | /=
+  | += | -= |  | 
 
 ===Comments===
 Single-line comments begin with //.Multiple-line comments are  enclosed with /* and */.
@@ -141,6 +141,7 @@ All other symbols are terminals.
   | //Exp17// | -> | //Ident// ``(`` ``)`` 
   |  |  **|**  | //Ident// ``(`` //[Exp2]// ``)`` 
   |  |  **|**  | //LValue// 
+  |  |  **|**  | //Ident// ``&`` 
   |  |  **|**  | //Constant// 
   |  |  **|**  | //Exp18// 
   | //[Exp2]// | -> | //Exp2// 

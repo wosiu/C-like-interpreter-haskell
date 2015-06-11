@@ -120,7 +120,9 @@ transExp x = do
 		Earray exps -> do
 			(x:xs) <- mapM transExp exps
 			_ <- mapM_ (checkTypeCompM x) xs
-			return $ ARR (x:xs)
+			-- like c++ rvalue until it is assigned
+			locs <- mapM declareLocation (x:xs)
+			return $ REF $ ARRLOC locs
 
 
 transExp_or_empty :: Exp_or_empty -> Semantics Val
@@ -153,9 +155,19 @@ transUninitialized_variable x = do
 		UninitArr dec_base arrdets -> do
 			let (DecBase type_specifier ident) = dec_base
 			sizes <- mapM getDimSize arrdets
-			let arr = foldr (\t a -> ARR $ replicate t a) (specifierToDefaultVal type_specifier) sizes
+			arr <- initArr type_specifier (reverse sizes)
 			putVarDecl ident arr
 
+initArr :: Type_specifier -> [Int] -> Semantics Val
+initArr type_specifier (x:[]) = do
+	let defVal = specifierToDefaultVal type_specifier
+	locs <- mapM (declareLocation) (replicate x defVal)
+	return $ REF $ ARRLOC locs
+
+initArr type_specifier (x:xs) = do
+	innerArrays <- mapM (\_ -> initArr type_specifier xs) [1..x] -- as REF valeus
+	innerLocs <- mapM declareLocation innerArrays
+	return $ REF $ ARRLOC innerLocs
 
 getDimSize :: ArrDet -> Semantics Int
 getDimSize x = do
@@ -170,7 +182,7 @@ getDimIt x = case x of
 		case size of
 			INT s -> do
 				if s >= 0 then return s
-				else throwError "Wrong array call"
+				else throwError "Wrong array call - negative value"
 			_ -> throwError "Invalid array size expression"
 	_ -> throwError "Invalid array size expression"
 
@@ -194,10 +206,11 @@ transInitialized_variable x = do
 			else putVarDecl ident content
 
 _checkArrType :: Type_specifier -> [ArrDet] -> Val -> Semantics ()
-_checkArrType type_specifier (x:xs) (ARR arr) =
+_checkArrType type_specifier (x:xs) (REF (ARRLOC locs)) = do
 	-- check only head, we have sure here that others are the same
-	_checkArrType type_specifier xs (head arr)
-_checkArrType type_specifier [] (ARR arr) = throwError "Incorrect number of array dimensions"
+	innerVal <- takeValueFromLoc $ head locs
+	_checkArrType type_specifier xs innerVal
+_checkArrType type_specifier [] (REF (ARRLOC locs)) = throwError "Incorrect number of array dimensions"
 _checkArrType type_specifier [] val = checkTypeM type_specifier val
 _checkArrType _ _ _ = throwError "Incorrect number of array dimensions"
 
@@ -244,11 +257,9 @@ mapIntLVal :: LValue -> (Int -> Int) -> Semantics Val
 mapIntLVal (LVar ident) fun = mapIntVar ident fun
 mapIntLVal (LArrEl ident arrdets) fun = do
 	levels <- mapM getDimIt arrdets
-	oldArr <- takeValueFromIdent ident
-	(INT oldVal) <- getArrEl oldArr levels
+	(INT oldVal) <- getArrEl ident levels
 	let newVal = INT $ fun oldVal
-	newArr <- changeArrEl oldArr levels newVal
-	changeVarValue ident newArr
+	_ <- changeArrEl ident levels newVal
 	return newVal
 
 
@@ -258,9 +269,8 @@ changeLVal lvalue val = do
 		LVar ident -> changeVarValue ident val
 		LArrEl ident arrdets -> do
 			levels <- mapM getDimIt arrdets
-			oldArr <- takeValueFromIdent ident
-			newArr <- changeArrEl oldArr levels val
-			changeVarValue ident newArr
+			_ <- changeArrEl ident levels val
+			return ()
 		LTuple idents -> do
 			case val of
 				TUPLE vals -> do
@@ -275,8 +285,7 @@ transLValue x = do
 		LVar ident -> takeValueFromIdent ident
 		LArrEl ident arrdets -> do
 			levels <- mapM getDimIt arrdets
-			arr <- takeValueFromIdent ident
-			getArrEl arr levels
+			getArrEl ident levels
 
 
 transConstant :: Constant -> Val

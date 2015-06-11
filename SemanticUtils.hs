@@ -11,12 +11,13 @@ import Control.Monad.Error
 
 type Semantics = ReaderT Env (StateT St (ErrorT String IO))
 
-type Loc = Int -- location
+data Loc = LOC Int | ARRLOC [Loc] deriving (Show, Eq, Ord) -- location
 type VEnv = M.Map Ident Loc -- variables environment
 
 type FuncCall = [Val] -> Semantics Jump
 type FEnv = M.Map Ident FuncCall -- functions environment
 
+-- Int is taken from Loc, look at LOC Int constructor of Loc
 type St = M.Map Loc Val -- state
 
 data Env = Env {
@@ -24,14 +25,21 @@ data Env = Env {
 		fEnv :: FEnv
 	}
 
-data Val = INT Int | BOOL Bool | STRING String | ARR [Val] |
+data Val = INT Int | BOOL Bool | STRING String |
 			TUPLE [Val] | PASS | REF Loc deriving (Show, Eq, Ord)
 
 checkTypeCompM :: Val -> Val -> Semantics ()
 checkTypeCompM (INT _) (INT _) = return ()
 checkTypeCompM (BOOL _) (BOOL _) = return ()
 checkTypeCompM (STRING _) (STRING _) = return ()
-checkTypeCompM (ARR arr1) (ARR arr2) = checkTypeCompM (head arr1) (head arr2)
+checkTypeCompM (REF (LOC loc1)) (REF (LOC loc2)) = do
+	val1 <- takeValueFromLoc $ LOC loc1
+	val2 <- takeValueFromLoc $ LOC loc2
+	checkTypeCompM val1 val2
+checkTypeCompM (REF (ARRLOC locs1)) (REF (ARRLOC locs2)) = do
+	val1 <- takeValueFromLoc $ head locs1
+	val2 <- takeValueFromLoc $ head locs2
+	checkTypeCompM val1 val2
 checkTypeCompM _ PASS = return ()
 checkTypeCompM PASS _ = return ()
 checkTypeCompM _ _ = throwError "Incompatible types"
@@ -79,7 +87,7 @@ emptyEnv = Env {vEnv = M.empty, fEnv = M.empty}
 
 -- na pozycji 0 zapisany jest numer następnej wolnej lokacji
 initialSt :: St
-initialSt = M.singleton 0 (INT 1)
+initialSt = M.singleton (LOC 0) (INT 1)
 
 class Printer p where
 	printString :: String -> p ()
@@ -103,8 +111,12 @@ takeLocation ident = do
 changeVarValue :: Ident -> Val -> Semantics ()
 changeVarValue ident newVal = do
 	loc <- takeLocation ident
-	Just val <- gets (M.lookup loc)
-	_ <- checkTypeCompM val newVal
+	changeValUnderLoc loc newVal
+
+changeValUnderLoc :: Loc -> Val -> Semantics ()
+changeValUnderLoc loc newVal = do
+	oldVal <- takeValueFromLoc loc
+	_ <- checkTypeCompM oldVal newVal
 	modify (M.insert loc newVal)
 
 -- change value of variable under ident using given function and return new value
@@ -146,11 +158,16 @@ putVarDecl ident val = do
 	if False && (M.member ident venv) then
 		throwError $ show ident ++ " - already used in scope"
 	else do
-		Just (INT newLoc) <- gets (M.lookup 0)
-		modify (M.insert newLoc val)
-		modify (M.insert 0 (INT (newLoc+1)))
+		newLoc <- declareLocation val
 		return Env { vEnv = (M.insert ident newLoc venv), fEnv = fenv }
 
+
+declareLocation :: Val -> Semantics Loc
+declareLocation val = do
+	Just (INT newLoc) <- gets (M.lookup (LOC 0))
+	modify (M.insert (LOC newLoc) val)
+	modify (M.insert (LOC 0) (INT (newLoc+1)))
+	return $ LOC newLoc
 
 putRefValue :: Ident -> Loc -> Semantics Env
 putRefValue ident loc = do
@@ -222,22 +239,28 @@ resolveFunc ident args = do
 		_ -> throwError "No return statement on function exit"
 
 
-getArrEl :: Val -> [Int] -> Semantics Val
-getArrEl (ARR arr) (i:dims) = do
-	if (i < length arr) && (i >= 0) then getArrEl (arr !! i) dims
+getArrElLoc :: Loc -> [Int] -> Semantics Loc
+getArrElLoc (ARRLOC locs) (i:dims) = do
+	if (i < length locs) && (i >= 0) then getArrElLoc (locs !! i) dims
 	else throwError "Index out of bound"
-getArrEl val [] = return val
-getArrEl _ _ = throwError "Wrong array call"
+getArrElLoc loc [] = return loc
+getArrElLoc loc dims = do
+	val <- takeValueFromLoc loc
+	case val of
+		REF innerLoc -> getArrElLoc innerLoc dims
+		_ -> throwError "Wrong array call - too much dimensions specified"
 
-changeArrEl :: Val -> [Int] -> Val -> Semantics Val
-changeArrEl arrV (i:levels) newVal = do
-	case arrV of
-		ARR arr -> do
-			let old = (arr !! i)
-			new <- changeArrEl old levels newVal
-			return $ ARR $ (take i arr) ++ [new] ++ (drop (i+1) arr)
-		_ -> throwError "Cannot pick element from non-array type"
+getArrEl :: Ident -> [Int] -> Semantics Val
+getArrEl ident levels = do
+	arrloc <- takeLocation ident
+	loc <- getArrElLoc arrloc levels
+	val <- takeValueFromLoc loc
+	return val
 
-changeArrEl oldVal [] newVal = do
-	_ <- checkTypeCompM oldVal newVal
-	return newVal
+changeArrEl :: Ident -> [Int] -> Val -> Semantics ()
+changeArrEl ident levels newVal = do
+	arrLoc <- takeLocation ident
+	elLoc <- getArrElLoc arrLoc levels
+	_ <- changeValUnderLoc elLoc newVal
+	return ()
+

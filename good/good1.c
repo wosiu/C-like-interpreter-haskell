@@ -157,7 +157,7 @@ print(t1);
 print(t2);
 print(t3);
 
-int,bool tupleFunc() {
+(int,bool) tupleFunc() {
 	return (1,true); 
 }
 (t1,t2) = tupleFunc();
@@ -206,6 +206,8 @@ int arr2D2[2][2];
 int arr1D[] = {1,2,3};
 arr2D2[1] = arr1D;
 print( arr2D2 );
+
+(int,(bool,int)) u = (2,(true,3));
 
 ///////////////////////
 a = 0;

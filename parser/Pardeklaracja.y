@@ -108,7 +108,7 @@ Type_specifier : 'bool' { Tbool }
   | 'int' { Tint }
   | 'string' { Tstring }
   | 'auto' { Tauto }
-  | ListType_specifier { Ttuple $1 }
+  | '(' ListType_specifier ')' { Ttuple $2 }
 
 
 ListType_specifier :: { [Type_specifier] }

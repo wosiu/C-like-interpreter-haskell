@@ -1,1 +1,1 @@
-int,bool f() { return (1,2); }
+(int,bool) f() { return (1,2); }

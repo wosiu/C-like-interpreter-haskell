@@ -38,8 +38,8 @@ The reserved words used in deklaracja are the following:
   | ``while`` |  |  | 
 
 The symbols used in deklaracja are the following:
-  | ; | { | } | ,
-  | = | ( | ) | :
+  | ; | { | } | (
+  | ) | , | = | :
   | || | && | == | !=
   | < | > | <= | >=
   | + | - | * | /
@@ -71,7 +71,7 @@ All other symbols are terminals.
   |  |  **|**  | ``int`` 
   |  |  **|**  | ``string`` 
   |  |  **|**  | ``auto`` 
-  |  |  **|**  | //[Type_specifier]// 
+  |  |  **|**  | ``(`` //[Type_specifier]// ``)`` 
   | //[Type_specifier]// | -> | //Type_specifier// 
   |  |  **|**  | //Type_specifier// ``,`` //[Type_specifier]// 
   | //Dec_base// | -> | //Type_specifier// //Ident// 

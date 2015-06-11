@@ -120,7 +120,7 @@ instance Print Type_specifier where
    Tint  -> prPrec i 0 (concatD [doc (showString "int")])
    Tstring  -> prPrec i 0 (concatD [doc (showString "string")])
    Tauto  -> prPrec i 0 (concatD [doc (showString "auto")])
-   Ttuple type_specifiers -> prPrec i 0 (concatD [prt 0 type_specifiers])
+   Ttuple type_specifiers -> prPrec i 0 (concatD [doc (showString "(") , prt 0 type_specifiers , doc (showString ")")])
 
   prtList es = case es of
    [x] -> (concatD [prt 0 x])

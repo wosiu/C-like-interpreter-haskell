@@ -27,7 +27,7 @@ Tint.         Type_specifier ::= "int";
 Tstring.      Type_specifier ::= "string";
 Tauto.        Type_specifier ::= "auto";
 
-Ttuple.       Type_specifier ::= [Type_specifier];
+Ttuple.       Type_specifier ::= "(" [Type_specifier] ")";
 separator nonempty Type_specifier ",";
 
 DecBase.  Dec_base ::= Type_specifier Ident;

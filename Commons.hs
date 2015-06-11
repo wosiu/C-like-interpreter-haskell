@@ -110,9 +110,17 @@ transExp x = do
 			args <- mapM transExp exps
 			resolveFunc ident args
 		Elval lvalue -> transLValue lvalue
-		Eref ident -> do
-			loc <- takeLocation ident
-			return $ REF loc
+		Eref lvalue -> do
+			case lvalue of
+				LVar ident -> do
+					loc <- takeLocation ident
+					return $ REF loc
+				LArrEl ident arrdets -> do
+					levels <- mapM getDimIt arrdets
+					loc <- takeLocation ident
+					elLoc <- getArrElLoc loc levels
+					return $ REF elLoc
+				_ -> throwError "Cannot take reference from given lvalue"
 		Econst constant -> return $ transConstant constant
 		Etuple exps -> do
 			vals <- mapM transExp exps

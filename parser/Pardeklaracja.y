@@ -265,7 +265,7 @@ Exp17 :: { Exp }
 Exp17 : Ident '(' ')' { Efunk $1 } 
   | Ident '(' ListExp2 ')' { Efunkpar $1 $3 }
   | LValue { Elval $1 }
-  | Ident '&' { Eref $1 }
+  | LValue '&' { Eref $1 }
   | Constant { Econst $1 }
   | Exp18 { $1 }
 

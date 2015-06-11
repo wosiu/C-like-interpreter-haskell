@@ -210,10 +210,16 @@ print( arr2D2 );
 ///////////////////////
 a = 0;
 b = 0;
-int rf(int q, int w) { q++; }
+int rf(int q, int w) { q++;w++; }
 rf(a&, b);
 print(a);
 print(b);
+
+/////////////////////
+int arrr[] = {1,1};
+rf(arrr[0]&, arrr[1]);
+print(arrr[0]);
+print(arrr[1]);
 
 
 

@@ -141,7 +141,7 @@ All other symbols are terminals.
   | //Exp17// | -> | //Ident// ``(`` ``)`` 
   |  |  **|**  | //Ident// ``(`` //[Exp2]// ``)`` 
   |  |  **|**  | //LValue// 
-  |  |  **|**  | //Ident// ``&`` 
+  |  |  **|**  | //LValue// ``&`` 
   |  |  **|**  | //Constant// 
   |  |  **|**  | //Exp18// 
   | //[Exp2]// | -> | //Exp2// 

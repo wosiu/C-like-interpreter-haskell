@@ -116,7 +116,7 @@ Efunk.       Exp17 ::= Ident "(" ")";
 Efunkpar.    Exp17 ::= Ident "(" [Exp2] ")";
 separator nonempty Exp2 "," ;
 Elval.       Exp17 ::= LValue;
-Eref.        Exp17 ::= Ident "&";
+Eref.        Exp17 ::= LValue "&";
 Econst.      Exp17 ::= Constant;
 Etuple.      Exp18 ::= "(" [Exp2] ")";
 Earray.      Exp19 ::= "{" [Exp2] "}";

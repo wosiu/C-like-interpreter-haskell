@@ -294,7 +294,9 @@ transLValue x = do
 		LArrEl ident arrdets -> do
 			levels <- mapM getDimIt arrdets
 			getArrEl ident levels
-
+		LTuple idents -> do
+			vals <- mapM takeValueFromIdent idents
+			return $ TUPLE vals
 
 transConstant :: Constant -> Val
 transConstant x = case x of

@@ -224,5 +224,15 @@ print(arrr[0]);
 print(arrr[1]);
 
 
+/////////////////// tuple more
+int a = 1;
+int b = 2;
+int c = 3;
+int d = 4;
+(a,b) = (c,d);
+print(a);
 
+auto e = (3); //this is int
+a = 2;
+int f = (3); // ..as well
 

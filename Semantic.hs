@@ -179,7 +179,7 @@ transPrint_stm (SPrint exp) = do
 		BOOL a -> printValue a
 		STRING a -> printString a
 		REF loc -> printString "Pointer.."
-		TUPLE vals -> printValue vals
+		TUPLE vals -> printValue val
 		PASS -> printString "VOID"
 	return NOTHING
 

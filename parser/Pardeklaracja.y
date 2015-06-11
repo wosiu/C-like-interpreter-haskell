@@ -202,11 +202,6 @@ Print_stm :: { Print_stm }
 Print_stm : 'print' '(' Exp2 ')' ';' { SPrint $3 } 
 
 
-Exp :: { Exp }
-Exp : Exp ',' Exp2 { Ecomma $1 $3 } 
-  | Exp1 { $1 }
-
-
 Exp2 :: { Exp }
 Exp2 : LValue Assignment_op Exp2 { Eassign $1 $2 $3 } 
   | Exp3 { $1 }
@@ -264,10 +259,32 @@ Exp16 : LValue '++' { Epostinc $1 }
 Exp17 :: { Exp }
 Exp17 : Ident '(' ')' { Efunk $1 } 
   | Ident '(' ListExp2 ')' { Efunkpar $1 $3 }
-  | LValue { Elval $1 }
-  | LValue '&' { Eref $1 }
-  | Constant { Econst $1 }
   | Exp18 { $1 }
+
+
+Exp20 :: { Exp }
+Exp20 : '(' ListExp2 ')' { Etuple $2 } 
+  | Exp21 { $1 }
+
+
+Exp21 :: { Exp }
+Exp21 : '{' ListExp2 '}' { Earray $2 } 
+  | Exp22 { $1 }
+
+
+Exp22 :: { Exp }
+Exp22 : Constant { Econst $1 } 
+  | Exp23 { $1 }
+
+
+Exp23 :: { Exp }
+Exp23 : LValue '&' { Eref $1 } 
+  | Exp24 { $1 }
+
+
+Exp24 :: { Exp }
+Exp24 : LValue { Elval $1 } 
+  | '(' Exp ')' { $2 }
 
 
 ListExp2 :: { [Exp] }
@@ -275,14 +292,8 @@ ListExp2 : Exp2 { (:[]) $1 }
   | Exp2 ',' ListExp2 { (:) $1 $3 }
 
 
-Exp18 :: { Exp }
-Exp18 : '(' ListExp2 ')' { Etuple $2 } 
-  | Exp19 { $1 }
-
-
-Exp19 :: { Exp }
-Exp19 : '{' ListExp2 '}' { Earray $2 } 
-  | '(' Exp ')' { $2 }
+Exp :: { Exp }
+Exp : Exp1 { $1 } 
 
 
 Exp1 :: { Exp }
@@ -311,6 +322,14 @@ Exp11 : Exp12 { $1 }
 
 Exp14 :: { Exp }
 Exp14 : Exp15 { $1 } 
+
+
+Exp18 :: { Exp }
+Exp18 : Exp19 { $1 } 
+
+
+Exp19 :: { Exp }
+Exp19 : Exp20 { $1 } 
 
 
 Constant :: { Constant }

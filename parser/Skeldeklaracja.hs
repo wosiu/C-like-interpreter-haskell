@@ -135,7 +135,6 @@ transPrint_stm x = case x of
 
 transExp :: Exp -> Result
 transExp x = case x of
-  Ecomma exp1 exp2  -> failure x
   Eassign lvalue assignment_op exp  -> failure x
   Elor exp1 exp2  -> failure x
   Eland exp1 exp2  -> failure x
@@ -156,11 +155,11 @@ transExp x = case x of
   Epostdec lvalue  -> failure x
   Efunk id  -> failure x
   Efunkpar id exps  -> failure x
-  Elval lvalue  -> failure x
-  Eref lvalue  -> failure x
-  Econst constant  -> failure x
   Etuple exps  -> failure x
   Earray exps  -> failure x
+  Econst constant  -> failure x
+  Eref lvalue  -> failure x
+  Elval lvalue  -> failure x
 
 
 transConstant :: Constant -> Result

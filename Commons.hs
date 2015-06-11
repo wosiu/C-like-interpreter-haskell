@@ -296,7 +296,8 @@ transLValue x = do
 			getArrEl ident levels
 		LTuple idents -> do
 			vals <- mapM takeValueFromIdent idents
-			return $ TUPLE vals
+			if length vals == 1 then return $ head vals
+			else return $ TUPLE vals
 
 transConstant :: Constant -> Val
 transConstant x = case x of

@@ -222,7 +222,6 @@ instance Print Print_stm where
 
 instance Print Exp where
   prt i e = case e of
-   Ecomma exp0 exp -> prPrec i 0 (concatD [prt 0 exp0 , doc (showString ",") , prt 2 exp])
    Eassign lvalue assignment_op exp -> prPrec i 2 (concatD [prt 0 lvalue , prt 0 assignment_op , prt 2 exp])
    Elor exp0 exp -> prPrec i 4 (concatD [prt 4 exp0 , doc (showString "||") , prt 5 exp])
    Eland exp0 exp -> prPrec i 5 (concatD [prt 5 exp0 , doc (showString "&&") , prt 6 exp])
@@ -243,11 +242,11 @@ instance Print Exp where
    Epostdec lvalue -> prPrec i 16 (concatD [prt 0 lvalue , doc (showString "--")])
    Efunk id -> prPrec i 17 (concatD [prt 0 id , doc (showString "(") , doc (showString ")")])
    Efunkpar id exps -> prPrec i 17 (concatD [prt 0 id , doc (showString "(") , prt 2 exps , doc (showString ")")])
-   Elval lvalue -> prPrec i 17 (concatD [prt 0 lvalue])
-   Eref lvalue -> prPrec i 17 (concatD [prt 0 lvalue , doc (showString "&")])
-   Econst constant -> prPrec i 17 (concatD [prt 0 constant])
-   Etuple exps -> prPrec i 18 (concatD [doc (showString "(") , prt 2 exps , doc (showString ")")])
-   Earray exps -> prPrec i 19 (concatD [doc (showString "{") , prt 2 exps , doc (showString "}")])
+   Etuple exps -> prPrec i 20 (concatD [doc (showString "(") , prt 2 exps , doc (showString ")")])
+   Earray exps -> prPrec i 21 (concatD [doc (showString "{") , prt 2 exps , doc (showString "}")])
+   Econst constant -> prPrec i 22 (concatD [prt 0 constant])
+   Eref lvalue -> prPrec i 23 (concatD [prt 0 lvalue , doc (showString "&")])
+   Elval lvalue -> prPrec i 24 (concatD [prt 0 lvalue])
 
   prtList es = case es of
    [x] -> (concatD [prt 2 x])

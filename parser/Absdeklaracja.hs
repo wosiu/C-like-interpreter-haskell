@@ -105,8 +105,7 @@ data Print_stm =
   deriving (Eq,Ord,Show)
 
 data Exp =
-   Ecomma Exp Exp
- | Eassign LValue Assignment_op Exp
+   Eassign LValue Assignment_op Exp
  | Elor Exp Exp
  | Eland Exp Exp
  | Eeq Exp Exp
@@ -126,11 +125,11 @@ data Exp =
  | Epostdec LValue
  | Efunk Ident
  | Efunkpar Ident [Exp]
- | Elval LValue
- | Eref LValue
- | Econst Constant
  | Etuple [Exp]
  | Earray [Exp]
+ | Econst Constant
+ | Eref LValue
+ | Elval LValue
   deriving (Eq,Ord,Show)
 
 data Constant =

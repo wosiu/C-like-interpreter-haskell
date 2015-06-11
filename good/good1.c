@@ -233,6 +233,8 @@ int d = 4;
 print(a);
 
 auto e = (3); //this is int
-a = 2;
-int f = (3); // ..as well
+e = 2;
+int f = (3); // ..works as well
 
+auto g = (a); //this is int
+g = 3;

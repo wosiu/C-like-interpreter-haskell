@@ -90,7 +90,6 @@ SPrint.	  Print_stm ::= "print" "(" Exp2 ")" ";";
 
 -- EXPRESSIONS
 
-Ecomma.      Exp   ::= Exp "," Exp2;
 Eassign.     Exp2  ::= LValue Assignment_op Exp2;
 
 Elor.        Exp4  ::= Exp4 "||" Exp5;
@@ -114,14 +113,16 @@ Epostdec.    Exp16 ::= LValue "--";
 
 Efunk.       Exp17 ::= Ident "(" ")";
 Efunkpar.    Exp17 ::= Ident "(" [Exp2] ")";
-separator nonempty Exp2 "," ;
-Elval.       Exp17 ::= LValue;
-Eref.        Exp17 ::= LValue "&";
-Econst.      Exp17 ::= Constant;
-Etuple.      Exp18 ::= "(" [Exp2] ")";
-Earray.      Exp19 ::= "{" [Exp2] "}";
+Etuple.      Exp20 ::= "(" [Exp2] ")";
+Earray.      Exp21 ::= "{" [Exp2] "}";
+Econst.      Exp22 ::= Constant;
 
-coercions Exp 19 ;
+Eref.        Exp23 ::= LValue "&";
+Elval.       Exp24 ::= LValue;
+
+
+separator nonempty Exp2 "," ;
+coercions Exp 24 ;
 
 Ebool.         Constant ::= CBool;
 Eint.          Constant ::= Integer;
@@ -132,6 +133,7 @@ BFalse.	CBool ::= "false";
 
 LVar.	LValue ::= Ident;
 LArrEl.	LValue ::= Ident [ArrDet];
+-- if only one ident, we take it as usual value in implementation
 LTuple. LValue ::= "(" [Ident] ")";
 
 ArrDet.      ArrDet ::= "[" Exp "]";

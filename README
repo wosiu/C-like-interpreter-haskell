@@ -1,3 +1,5 @@
+Projekt w ramach przedmiotu JPP (27/24 pkt).
+
 1. Odpalanie interpretera:
 make
 ./interpreter plik_z_kodem
